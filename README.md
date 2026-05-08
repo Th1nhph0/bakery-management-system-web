@@ -24,11 +24,17 @@ Trình tự làm bài theo quy trình:
    Sau đó cứ luân phiên dán vào sau PM< và ENTER
    
    Install-Package Microsoft.EntityFrameworkCore.SqlServer
+   
    Install-Package Microsoft.EntityFrameworkCore.Tools
+   
    Install-Package Microsoft.Data.SqlClient
+   
    Install-Package Microsoft.EntityFrameworkCore
+   
    Install-Package Swashbuckle.AspNetCore
+   
    Install-Package Microsoft.EntityFrameworkCore.Design
+   
    
    Đã hoàn thành việc tạo các này kia kia nọ hihi
    Tiếp theo là kết nối với server SQL đã tạo trên máy, giữ nguyên cái console nãy giờ để tải á, dán cái này vào
