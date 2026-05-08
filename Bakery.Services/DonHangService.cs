@@ -19,6 +19,23 @@ namespace Bakery.Services
 
         public async Task<int> TaoDonHangMoiAsync(TaoDonHangRequest request)
         {
+            // === THÊM MỚI: LOGIC KIỂM TRA TỒN KHO TRƯỚC KHI ĐẶT (STT 3) ===
+            foreach (var item in request.ChiTietGioHang)
+            {
+                // Truy vấn xem sản phẩm này còn trong DB không và số lượng bao nhiêu
+                var sanPhamDB = await _context.SanPhams.FindAsync(item.SanPham_ID);
+
+                if (sanPhamDB == null)
+                {
+                    throw new Exception($"Lỗi: Sản phẩm có mã {item.SanPham_ID} không tồn tại!");
+                }
+
+                // Nếu khách đặt nhiều hơn số lượng kho đang có -> Báo lỗi ngay lập tức
+                if (sanPhamDB.SoLuongTon < item.So_Luong)
+                {
+                    throw new Exception($"Rất tiếc, bánh '{sanPhamDB.TenSanPham}' chỉ còn lại {sanPhamDB.SoLuongTon} cái. Không đủ để đặt {item.So_Luong} cái!");
+                }
+            }
             // 1. Chuyển mảng Giỏ hàng thành chuỗi JSON
             string gioHangJson = JsonSerializer.Serialize(request.ChiTietGioHang);
 

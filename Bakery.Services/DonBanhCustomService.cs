@@ -59,5 +59,35 @@ namespace Bakery.Services
                 throw;
             }
         }
+        // Hàm tính toán giá bánh custom (STT 4)
+        public decimal TinhTienBanhCustom(string kichThuoc, string yeuCauThietKe)
+        {
+            decimal giaGoc = 250000; // Giá cốt bánh cơ bản mặc định
+            decimal phuPhiSize = 0;
+            decimal phuPhiThietKe = 0;
+
+            // 1. Logic tính phụ phí theo Size
+            if (!string.IsNullOrEmpty(kichThuoc))
+            {
+                string size = kichThuoc.ToLower();
+                if (size.Contains("l") || size.Contains("20cm") || size.Contains("lớn"))
+                    phuPhiSize = 100000;
+                else if (size.Contains("m") || size.Contains("16cm") || size.Contains("vừa"))
+                    phuPhiSize = 50000;
+            }
+
+            // 2. Logic tính phụ phí Thiết kế (Bắt từ khóa)
+            if (!string.IsNullOrEmpty(yeuCauThietKe))
+            {
+                string yeuCau = yeuCauThietKe.ToLower();
+                if (yeuCau.Contains("2 tầng") || yeuCau.Contains("vẽ hình") || yeuCau.Contains("phức tạp"))
+                    phuPhiThietKe = 200000;
+                else if (yeuCau.Contains("ghi chữ") || yeuCau.Contains("đơn giản") || yeuCau.Contains("hoa"))
+                    phuPhiThietKe = 50000;
+            }
+
+            // Trả về tổng tiền
+            return giaGoc + phuPhiSize + phuPhiThietKe;
+        }
     }
 }

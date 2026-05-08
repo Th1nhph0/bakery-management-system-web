@@ -24,5 +24,36 @@ namespace Bakery.Services
 
             return khuyenMai;
         }
+        // Hàm check hạn sử dụng và tính toán tiền giảm
+        public async Task<object> CheckVaApDungKhuyenMaiAsync(string tenCode, decimal tongTienDonHang)
+        {
+            var khuyenMai = await _context.KhuyenMais.FirstOrDefaultAsync(km => km.MaCode== tenCode);
+
+            // 1. Check mã có tồn tại không
+            if (khuyenMai == null)
+            {
+                return new { HopLe = false, Message = "Mã khuyến mãi không tồn tại!" };
+            }
+
+            // 2. Check hạn sử dụng (Giả sử DB có cột NgayBatDau và NgayKetThuc)
+            DateTime homNay = DateTime.Now;
+            if (homNay < khuyenMai.NgayBatDau || homNay > khuyenMai.NgayKetThuc)
+            {
+                return new { HopLe = false, Message = "Mã giảm giá đã hết hạn hoặc chưa tới thời gian áp dụng!" };
+            }
+
+            // 3. Tính toán tiền giảm
+            decimal soTienDuocGiam = tongTienDonHang * ((decimal)khuyenMai.PhanTramGiam / 100);
+            decimal tienSauGiam = tongTienDonHang - soTienDuocGiam;
+
+            return new
+            {
+                HopLe = true,
+                Message = "Áp dụng mã thành công!",
+                PhanTramGiam = khuyenMai.PhanTramGiam,
+                TienGiam = soTienDuocGiam,
+                TongTienCuoiCung = tienSauGiam
+            };
+        }
     }
 }

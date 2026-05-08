@@ -35,5 +35,19 @@ namespace Bakery.API.Controllers
                 return StatusCode(500, new { Success = false, Message = "Lỗi hệ thống: " + ex.Message });
             }
         }
+        // Endpoint: GET /api/KhuyenMai/KiemTra?tenCode=KHAITRUONG&tongTien=200000
+        [HttpGet("KiemTra")]
+        public async Task<IActionResult> KiemTraMaGiamGia([FromQuery] string tenCode, [FromQuery] decimal tongTien)
+        {
+            try
+            {
+                var result = await _service.CheckVaApDungKhuyenMaiAsync(tenCode, tongTien);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { HopLe = false, Message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
     }
 }
