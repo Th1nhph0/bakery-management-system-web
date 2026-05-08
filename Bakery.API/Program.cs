@@ -12,6 +12,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<Bakery.Services.SanPhamService>();
+builder.Services.AddScoped<Bakery.Services.DonHangService>();
+builder.Services.AddScoped<Bakery.Services.KhuyenMaiService>();
+builder.Services.AddScoped<Bakery.Services.DonBanhCustomService>();
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
