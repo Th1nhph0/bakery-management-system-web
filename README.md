@@ -20,24 +20,31 @@ Trình tự làm bài theo quy trình:
    Vì đây là cái tên sẽ kết nối với SQL với API
 4. Sau khi chạy file này xong <img width="121" height="34" alt="image" src="https://github.com/user-attachments/assets/c7b1cd0d-751e-4541-a6a7-7b23a81e2a52" />
    Tools -> Nuget Package ... -> Console <img width="1119" height="616" alt="image" src="https://github.com/user-attachments/assets/81f9f640-d9ae-45b6-8e07-65ad33020b7e" />
+   
    Sau đó cứ luân phiên dán vào sau PM< và ENTER
+   
    Install-Package Microsoft.EntityFrameworkCore.SqlServer
    Install-Package Microsoft.EntityFrameworkCore.Tools
    Install-Package Microsoft.Data.SqlClient
    Install-Package Microsoft.EntityFrameworkCore
    Install-Package Swashbuckle.AspNetCore
    Install-Package Microsoft.EntityFrameworkCore.Design
+   
    Đã hoàn thành việc tạo các này kia kia nọ hihi
    Tiếp theo là kết nối với server SQL đã tạo trên máy, giữ nguyên cái console nãy giờ để tải á, dán cái này vào
+   
    {
   "ConnectionStrings": {
     "DefaultConnection": "Server=TÊN_SERVER_CỦA_BẠN;Database=BakeryManagement;Trusted_Connection=True;TrustServerCertificate=True;"
   },
   "Logging": { ... }
-}  Thay TÊN_SERVER_CỦA_BẠN bằng cái hồi nãy em nói trong phần 2. á xong rồi ENTER, nếu thấy lỗi time_out gì đó hãy nhớ tắt app SSMS mà chạy script nãy đi, xong ròi chạy lại, nếu như gặp thêm lỗi thì sửa TÊN_SERVER_CỦA_BẠN thành . 
+}
+
+
+   Thay TÊN_SERVER_CỦA_BẠN bằng cái hồi nãy em nói trong phần 2. á xong rồi ENTER, nếu thấy lỗi time_out gì đó hãy nhớ tắt app SSMS mà chạy script nãy đi, xong ròi chạy lại, nếu như gặp thêm lỗi thì sửa TÊN_SERVER_CỦA_BẠN thành . 
    Sau khi thấy chạy thành công á, mình kiểm tra bên mục <img width="369" height="387" alt="image" src="https://github.com/user-attachments/assets/cf0c88c8-bc24-422c-9705-6457412422bf" /> có đủ như này chưa, đủ là thành công ròi á
 
-5. Run Project (F5)
+6. Run Project (F5)
    Run thành công thì sẽ hiện ra như sau
    <img width="1201" height="614" alt="image" src="https://github.com/user-attachments/assets/f8ac3d6a-429d-4ef0-83d7-22a81831bb64" />
    TRong đó dòng link đầu tiên chính là nơi để mình test các api nãy giờ mình tạo ra, khi sao chép vào dán vào trình duyệt thì nhớ add thêm /swagger vào thì mới đc (vd https://localhost:7122/swagger/index.html)
