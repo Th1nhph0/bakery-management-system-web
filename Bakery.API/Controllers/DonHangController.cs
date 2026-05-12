@@ -1,6 +1,7 @@
 ﻿using Bakery.Data.DTOs;
 using Bakery.Data.Models;
 using Bakery.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,10 +11,11 @@ namespace Bakery.API.Controllers
     [ApiController]
     public class DonHangController : ControllerBase
     {
+        private readonly BakeryManagementDbContext _context;
         private readonly DonHangService _donHangService;
-
-        public DonHangController(DonHangService donHangService)
+        public DonHangController(DonHangService donHangService, BakeryManagementDbContext context)
         {
+            _context = context;
             _donHangService = donHangService;
         }
 
@@ -60,5 +62,36 @@ namespace Bakery.API.Controllers
                 return StatusCode(500, new { Message = "Lỗi tạo XML: " + ex.Message });
             }
         }
+        // GET: api/DonHang (Admin xem tất cả đơn)
+        [HttpGet]
+        public async Task<IActionResult> GetAllDonHang()
+        {
+            // Lấy danh sách đơn hàng, sắp xếp đơn mới nhất lên đầu
+            var dsDonHang = await _context.DonHangs
+                                  .OrderByDescending(d => d.NgayDatHang)
+                                  .ToListAsync();
+            return Ok(dsDonHang);
+        }
+        // PUT: api/DonHang/5/Status (Admin và Staff cập nhật trạng thái đơn)
+        //[Authorize(Roles = "Admin,Staff")]
+        [HttpPut("{id}/Status")]
+        public async Task<IActionResult> CapNhatTrangThai(int id, [FromBody] UpdateStatusRequest request)
+        {
+            var donHang = await _context.DonHangs.FindAsync(id);
+            if (donHang == null) return NotFound();
+
+            donHang.TrangThai = request.TrangThaiMoi;
+            donHang.NguoiCapNhat = request.TenNhanVien; // Lưu tên người vừa thao tác
+            donHang.NgayCapNhat = DateTime.Now; // Lưu luôn giờ giấc cho chắc
+
+            await _context.SaveChangesAsync();
+            return Ok(new { Message = $"Nhân viên {request.TenNhanVien} đã cập nhật trạng thái!" });
+        }
+        public class UpdateStatusRequest
+        {
+            public string TrangThaiMoi { get; set; } = null!;
+            public string TenNhanVien { get; set; } = null!;
+        }
+
     }
 }

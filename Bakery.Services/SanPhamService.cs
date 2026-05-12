@@ -32,7 +32,8 @@ namespace Bakery.Services
 
             // Tìm bằng LINQ: Lọc những bánh có tên chứa từ khóa (không phân biệt hoa thường)
             return await _context.SanPhams
-                .Where(sp => sp.TenSanPham.Contains(tuKhoa) || sp.PhanLoai.Contains(tuKhoa))
+                .Where(sp => (sp.TenSanPham != null && sp.TenSanPham.Contains(tuKhoa)) ||
+                             (sp.PhanLoai != null && sp.PhanLoai.Contains(tuKhoa)))
                 .ToListAsync();
         }
         // ADMIN - Cập nhật thông tin sản phẩm (PUT)
@@ -81,6 +82,27 @@ namespace Bakery.Services
                 query = query.Where(sp => sp.DonGiaBan >= minPrice.Value);
 
             return await query.ToListAsync();
+        }
+        public async Task DoiTenDanhMucAsync(string tenCu, string tenMoi)
+        {
+            var dsSanPham = await _context.SanPhams
+                .Where(sp => sp.PhanLoai == tenCu)
+                .ToListAsync();
+
+            foreach (var sp in dsSanPham)
+            {
+                sp.PhanLoai = tenMoi;
+            }
+
+            await _context.SaveChangesAsync();
+        }
+        public async Task<List<string>> GetDanhSachDanhMucAsync()
+        {
+            return await _context.SanPhams
+                .Where(sp => sp.PhanLoai != null)
+                .Select(sp => sp.PhanLoai!)       
+                .Distinct()
+                .ToListAsync();
         }
     }
 }

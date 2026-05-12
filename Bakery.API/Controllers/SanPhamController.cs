@@ -1,6 +1,7 @@
 ﻿using Bakery.Data.Models;
 using Bakery.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Bakery.API.Controllers
 {
@@ -8,15 +9,14 @@ namespace Bakery.API.Controllers
     [ApiController]
     public class SanPhamController : ControllerBase
     {
+        private readonly BakeryManagementDbContext _context;
         private readonly SanPhamService _sanPhamService;
 
-        // Tiêm Service vào Controller (Dependency Injection)
-        public SanPhamController(SanPhamService sanPhamService)
+        public SanPhamController(SanPhamService sanPhamService, BakeryManagementDbContext context)
         {
-            _sanPhamService = sanPhamService;
+            _context = context;
+            _sanPhamService = sanPhamService; 
         }
-
-        // ĐÂY LÀ CÁI HÀM MÀ SWAGGER ĐANG TÌM KIẾM NÀY!
         // Endpoint: GET /api/sanpham
         [HttpGet]
         public async Task<IActionResult> GetDanhSachSanPham()
@@ -86,6 +86,35 @@ namespace Bakery.API.Controllers
                 return StatusCode(500, new { Success = false, Message = "Lỗi xóa dữ liệu: " + ex.Message });
             }
         }
-        
+
+        [HttpGet("DanhMuc")]
+        public async Task<IActionResult> GetDanhSachDanhMuc()
+        {
+            try
+            {
+                // Gọi thông qua Service, Controller không cần quan tâm _context là gì nữa
+                var danhMuc = await _sanPhamService.GetDanhSachDanhMucAsync();
+                return Ok(danhMuc);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi: " + ex.Message);
+            }
+        }
+        // POST: api/SanPham
+        [HttpPost]
+        public async Task<IActionResult> ThemSanPhamMoi([FromBody] SanPham sp)
+        {
+            try
+            {
+                _context.SanPhams.Add(sp);
+                await _context.SaveChangesAsync();
+                return Ok(new { Success = true, Message = "Thêm bánh mới thành công!", Data = sp });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Success = false, Message = "Lỗi: " + ex.Message });
+            }
+        }
     }
 }

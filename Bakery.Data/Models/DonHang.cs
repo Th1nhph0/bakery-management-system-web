@@ -38,4 +38,6 @@ public partial class DonHang
     public virtual KhuyenMai? KhuyenMai { get; set; }
 
     public virtual NhanVien? NhanVien { get; set; }
+    public string? NguoiCapNhat { get; set; }
+    public DateTime? NgayCapNhat { get; set; }
 }
