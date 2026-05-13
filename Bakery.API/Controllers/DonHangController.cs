@@ -64,12 +64,33 @@ namespace Bakery.API.Controllers
         }
         // GET: api/DonHang (Admin xem tất cả đơn)
         [HttpGet]
+        // GET: api/DonHang (Admin xem tất cả đơn)
+        [HttpGet]
         public async Task<IActionResult> GetAllDonHang()
         {
-            // Lấy danh sách đơn hàng, sắp xếp đơn mới nhất lên đầu
+            // Kết hợp LINQ để kiểm tra xem đơn hàng có nằm trong bảng Custom hay không ngay lúc query
             var dsDonHang = await _context.DonHangs
                                   .OrderByDescending(d => d.NgayDatHang)
+                                  .Select(dh => new
+                                  {
+                                      // 1. Lấy toàn bộ thông tin gốc của đơn hàng
+                                      dh.DonHangId,
+                                      dh.MaDhHienThi,
+                                      dh.TenNguoiNhan,
+                                      dh.SdtNguoiNhan,
+                                      dh.DiaChiGiao,
+                                      dh.NgayDatHang,
+                                      dh.TrangThai,
+                                      dh.TongTien,
+                                      dh.SoTienGiam,
+                                      dh.NguoiCapNhat,
+                                      dh.NgayCapNhat,
+
+                                      // 2. VŨ KHÍ TỐI ƯU: Thêm một cột ảo (Cờ) kiểm tra Custom
+                                      LaDonCustom = _context.DonBanhCustoms.Any(c => c.DonHangId == dh.DonHangId)
+                                  })
                                   .ToListAsync();
+
             return Ok(dsDonHang);
         }
         // PUT: api/DonHang/5/Status (Admin và Staff cập nhật trạng thái đơn)
@@ -92,6 +113,33 @@ namespace Bakery.API.Controllers
             public string TrangThaiMoi { get; set; } = null!;
             public string TenNhanVien { get; set; } = null!;
         }
+        // GET: api/DonBanhCustom/TheoDonHang/5
+        [HttpGet("TheoDonHang/{donHangId}")]
+        public async Task<IActionResult> KiemTraDonCustom(int donHangId)
+        {
+            try
+            {
+                // Tìm trong bảng DonBanhCustom xem có cái nào mang Don_Hang_ID này không
+                var thongTinCustom = await _context.DonBanhCustoms
+                                           .FirstOrDefaultAsync(c => c.DonHangId == donHangId);
 
+                // Nếu tìm không thấy -> Báo cho Frontend biết đây là đơn mua bánh sẵn
+                if (thongTinCustom == null)
+                {
+                    return Ok(new { LaDonCustom = false, Message = "Đây là đơn bánh có sẵn bình thường." });
+                }
+
+                // Nếu tìm thấy -> Báo là đơn Custom và trả về chi tiết (màu sắc, size, lời chúc...)
+                return Ok(new
+                {
+                    LaDonCustom = true,
+                    Data = thongTinCustom
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
     }
 }
