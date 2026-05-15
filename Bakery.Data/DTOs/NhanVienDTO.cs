@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Bakery.API.DTOs
+{
+    public class NhanVienDTO
+    {
+        public string TenNhanVien { get; set; }
+        public string Sdt { get; set; }
+        public string Email { get; set; }
+        public string MatKhau { get; set; }
+        public string ChucVu { get; set; }
+    }
+}
