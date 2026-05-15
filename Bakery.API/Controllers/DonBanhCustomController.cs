@@ -69,6 +69,30 @@ namespace Bakery.API.Controllers
         {
             try
             {
+                if (request == null)
+                {
+                    return BadRequest(new { Success = false, Message = "Dữ liệu đặt bánh custom không hợp lệ!" });
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Kich_Thuoc))
+                {
+                    return BadRequest(new { Success = false, Message = "Vui lòng chọn kích thước bánh trước khi đặt." });
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Ten_Nguoi_Nhan)
+                    || string.IsNullOrWhiteSpace(request.SDT_Nguoi_Nhan)
+                    || string.IsNullOrWhiteSpace(request.Dia_Chi_Giao)
+                    || string.IsNullOrWhiteSpace(request.Mo_Ta_Yeu_Cau)
+                    || string.IsNullOrWhiteSpace(request.Mau_Sac))
+                {
+                    return BadRequest(new { Success = false, Message = "Vui lòng nhập đầy đủ thông tin đặt bánh custom." });
+                }
+
+                if (request.Ngay_Lay_Banh == default)
+                {
+                    return BadRequest(new { Success = false, Message = "Vui lòng chọn ngày lấy bánh." });
+                }
+
                 // Gọi sang Service để lưu dữ liệu và lấy mã Đơn hàng (ID) về
                 var id = await _service.LuuDonBanhCustomAsync(request);
 
@@ -76,7 +100,7 @@ namespace Bakery.API.Controllers
                 return Ok(new
                 {
                     Success = true,
-                    Message = "Đã nhận yêu cầu đặt bánh custom thành công!",
+                    Message = $"Đặt thành công mã đơn #{id}.",
                     DonHangID = id
                 });
             }
