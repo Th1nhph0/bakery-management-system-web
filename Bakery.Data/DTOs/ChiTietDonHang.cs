@@ -12,8 +12,8 @@ namespace Bakery.Data.DTOs
 
     public class TaoDonHangDTO
     {
-        public int Khach_Hang_ID { get; set; }
-        public int Nhan_Vien_ID { get; set; }
+        public int? Khach_Hang_ID { get; set; } // Null cho khách vãng lai
+        public int? Nhan_Vien_ID { get; set; }  // Null nếu không có
         public int? Khuyen_Mai_ID { get; set; } // Có thể null nếu không nhập mã
         public string Ten_Nguoi_Nhan { get; set; }
         public string SDT_Nguoi_Nhan { get; set; }

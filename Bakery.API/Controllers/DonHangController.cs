@@ -57,6 +57,24 @@ namespace Bakery.API.Controllers
         [HttpPost("TaoDonHang")]
         public async Task<IActionResult> TaoDonHangMoi([FromBody] TaoDonHangDTO request)
         {
+            // Kiểm tra dữ liệu bắt buộc
+            if (request == null)
+            {
+                return BadRequest(new { Message = "Dữ liệu đơn hàng không hợp lệ!" });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Ten_Nguoi_Nhan) || 
+                string.IsNullOrWhiteSpace(request.SDT_Nguoi_Nhan) || 
+                string.IsNullOrWhiteSpace(request.Dia_Chi_Giao))
+            {
+                return BadRequest(new { Message = "Vui lòng nhập đầy đủ thông tin người nhận (tên, SĐT, địa chỉ)!" });
+            }
+
+            if (request.ChiTietGioHang == null || request.ChiTietGioHang.Count == 0)
+            {
+                return BadRequest(new { Message = "Giỏ hàng không được trống!" });
+            }
+
             // 1. Tạo đối tượng Đơn Hàng mới (Entity)
             var donHangMoi = new DonHang
             {

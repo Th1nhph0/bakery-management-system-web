@@ -20,11 +20,38 @@ namespace Bakery.API.Controllers
         [HttpGet("HienThiDanhSachSanPham")]
         public async Task<IActionResult> GetDanhSachSanPham()
         {
-            // Gọi xuống tầng Service để lấy data
-            var data = await _sanPhamService.GetAllSanPhamAsync();
+            try
+            {
+                // Gọi xuống tầng Service để lấy data
+                var data = await _sanPhamService.GetAllSanPhamAsync();
 
-            // Trả về dữ liệu dạng JSON với mã trạng thái 200 (Ok)
-            return Ok(data);
+                // Trả về dữ liệu dạng JSON với mã trạng thái 200 (Ok)
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Success = false, Message = "Không thể tải danh sách sản phẩm: " + ex.Message });
+            }
+        }
+
+        [HttpGet("ChiTietSanPham/{id}")]
+        public async Task<IActionResult> GetChiTietSanPham(int id)
+        {
+            try
+            {
+                var sanPham = await _context.SanPhams.FirstOrDefaultAsync(sp => sp.SanPhamId == id);
+
+                if (sanPham == null)
+                {
+                    return NotFound(new { Success = false, Message = "Không tìm thấy sản phẩm!" });
+                }
+
+                return Ok(sanPham);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Success = false, Message = "Lỗi hệ thống: " + ex.Message });
+            }
         }
 
         [HttpGet("XemPhanLoaiSanPham")]

@@ -28,7 +28,9 @@ namespace Bakery.Services
                     TenNguoiNhan = request.Ten_Nguoi_Nhan,
                     SdtNguoiNhan = request.SDT_Nguoi_Nhan,
                     DiaChiGiao = request.Dia_Chi_Giao,
-                    TrangThai = "Chờ duyệt" //Đc duyệt thì mới làm 
+                    TrangThai = "Chờ duyệt",
+                    TongTien = request.Gia_Du_Kien,
+                    SoTienGiam = 0
                 };
 
                 _context.DonHangs.Add(donHang);
@@ -38,6 +40,7 @@ namespace Bakery.Services
                 var donCustom = new DonBanhCustom
                 {
                     DonHangId = donHang.DonHangId, 
+                    LoaiYeuCau = "Đặt bánh custom",
                     GhiChu = request.Mo_Ta_Yeu_Cau,
                     KichThuocSoLuong = request.Kich_Thuoc,
                     MauSacChuDao = request.Mau_Sac,
