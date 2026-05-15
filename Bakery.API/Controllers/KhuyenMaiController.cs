@@ -18,8 +18,38 @@ namespace Bakery.API.Controllers
             _service = service;
         }
 
-        // Endpoint: GET api/KhuyenMai/{tenCode}
-        [HttpGet("{tenCode}")]
+        [HttpGet("HienThiCacMaKhuyenMai")]
+        public async Task<IActionResult> GetAllKhuyenMai()
+        {
+            return Ok(await _context.KhuyenMais.ToListAsync());
+        }
+
+
+        [HttpPost("TaoKhuyenMaiMoi")]
+        public async Task<IActionResult> TaoKhuyenMai([FromBody] KhuyenMai km)
+        {
+            _context.KhuyenMais.Add(km);
+            await _context.SaveChangesAsync();
+            return Ok(new { Message = "Tạo mã khuyến mãi thành công!", Data = km });
+        }
+
+
+        [HttpPut("CapNhatKhuyenMai{id}")]
+        public async Task<IActionResult> CapNhatKhuyenMai(int id, [FromBody] KhuyenMai kmCapNhat)
+        {
+            var km = await _context.KhuyenMais.FindAsync(id);
+            if (km == null) return NotFound();
+
+            km.MaCode = kmCapNhat.MaCode;
+            km.PhanTramGiam = kmCapNhat.PhanTramGiam;
+            km.NgayBatDau = kmCapNhat.NgayBatDau;
+            km.NgayKetThuc = kmCapNhat.NgayKetThuc;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { Message = "Đã cập nhật mã khuyến mãi!" });
+        }
+
+        [HttpGet("KiemTraMaCodeKhuyenMai{tenCode}")]
         public async Task<IActionResult> KiemTraMaGiamGia(string tenCode)
         {
             try
@@ -39,8 +69,8 @@ namespace Bakery.API.Controllers
                 return StatusCode(500, new { Success = false, Message = "Lỗi hệ thống: " + ex.Message });
             }
         }
-        // Endpoint: GET /api/KhuyenMai/KiemTra?tenCode=KHAITRUONG&tongTien=200000
-        [HttpGet("KiemTra")]
+
+        [HttpGet("KiemTraTinhToanKhuyenMai")]
         public async Task<IActionResult> KiemTraMaGiamGia([FromQuery] string tenCode, [FromQuery] decimal tongTien)
         {
             try
@@ -53,40 +83,8 @@ namespace Bakery.API.Controllers
                 return StatusCode(500, new { HopLe = false, Message = "Lỗi hệ thống: " + ex.Message });
             }
         }
-        // GET: api/KhuyenMai (Lấy toàn bộ mã để hiển thị lên bảng)
-        [HttpGet]
-        public async Task<IActionResult> GetAllKhuyenMai()
-        {
-            return Ok(await _context.KhuyenMais.ToListAsync());
-        }
 
-        // POST: api/KhuyenMai (Tạo mã giảm giá mới)
-        [HttpPost]
-        public async Task<IActionResult> TaoKhuyenMai([FromBody] KhuyenMai km)
-        {
-            _context.KhuyenMais.Add(km);
-            await _context.SaveChangesAsync();
-            return Ok(new { Message = "Tạo mã khuyến mãi thành công!", Data = km });
-        }
-
-        // PUT: api/KhuyenMai/{id} (Sửa % giảm hoặc ngày hết hạn)
-        [HttpPut("{id}")]
-        public async Task<IActionResult> CapNhatKhuyenMai(int id, [FromBody] KhuyenMai kmCapNhat)
-        {
-            var km = await _context.KhuyenMais.FindAsync(id);
-            if (km == null) return NotFound();
-
-            km.MaCode = kmCapNhat.MaCode;
-            km.PhanTramGiam = kmCapNhat.PhanTramGiam;
-            km.NgayBatDau = kmCapNhat.NgayBatDau;
-            km.NgayKetThuc = kmCapNhat.NgayKetThuc;
-
-            await _context.SaveChangesAsync();
-            return Ok(new { Message = "Đã cập nhật mã khuyến mãi!" });
-        }
-
-        // DELETE: api/KhuyenMai/{id} (Xóa mã)
-        [HttpDelete("{id}")]
+        [HttpDelete("XoaKhuyenMai{id}")]
         public async Task<IActionResult> XoaKhuyenMai(int id)
         {
             var km = await _context.KhuyenMais.FindAsync(id);

@@ -17,8 +17,7 @@ namespace Bakery.API.Controllers
             _context = context;
             _sanPhamService = sanPhamService; 
         }
-        // Endpoint: GET /api/sanpham
-        [HttpGet]
+        [HttpGet("HienThiDanhSachSanPham")]
         public async Task<IActionResult> GetDanhSachSanPham()
         {
             // Gọi xuống tầng Service để lấy data
@@ -27,8 +26,39 @@ namespace Bakery.API.Controllers
             // Trả về dữ liệu dạng JSON với mã trạng thái 200 (Ok)
             return Ok(data);
         }
-        // Endpoint: GET /api/SanPham/TimKiem?tuKhoa=Tiramisu
-        [HttpGet("TimKiem")]
+
+        [HttpGet("XemPhanLoaiSanPham")]
+        public async Task<IActionResult> GetDanhSachDanhMuc()
+        {
+            try
+            {
+                // Gọi thông qua Service, Controller không cần quan tâm _context là gì nữa
+                var danhMuc = await _sanPhamService.GetDanhSachDanhMucAsync();
+                return Ok(danhMuc);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi: " + ex.Message);
+            }
+        }
+
+
+        [HttpPost("ThemSanPhamMoi")]
+        public async Task<IActionResult> ThemSanPhamMoi([FromBody] SanPham sp)
+        {
+            try
+            {
+                _context.SanPhams.Add(sp);
+                await _context.SaveChangesAsync();
+                return Ok(new { Success = true, Message = "Thêm bánh mới thành công!", Data = sp });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Success = false, Message = "Lỗi: " + ex.Message });
+            }
+        }
+
+        [HttpGet("TimKiemSanPham")]
         public async Task<IActionResult> TimKiemSanPham([FromQuery] string tuKhoa)
         {
             try
@@ -47,8 +77,8 @@ namespace Bakery.API.Controllers
                 return StatusCode(500, new { Success = false, Message = "Lỗi hệ thống: " + ex.Message });
             }
         }
-        // Endpoint: PUT /api/SanPham/{id} - ADMIN Cập nhật
-        [HttpPut("{id}")]
+   
+        [HttpPut("CapNhatSanPham{id}")]
         public async Task<IActionResult> CapNhatSanPham(int id, [FromBody] SanPham sanPhamCapNhat)
         {
             try
@@ -67,8 +97,7 @@ namespace Bakery.API.Controllers
             }
         }
 
-        // Endpoint: DELETE /api/SanPham/{id} - ADMIN Xóa
-        [HttpDelete("{id}")]
+        [HttpDelete("XoaSanPham{id}")]
         public async Task<IActionResult> XoaSanPham(int id)
         {
             try
@@ -84,36 +113,6 @@ namespace Bakery.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { Success = false, Message = "Lỗi xóa dữ liệu: " + ex.Message });
-            }
-        }
-
-        [HttpGet("DanhMuc")]
-        public async Task<IActionResult> GetDanhSachDanhMuc()
-        {
-            try
-            {
-                // Gọi thông qua Service, Controller không cần quan tâm _context là gì nữa
-                var danhMuc = await _sanPhamService.GetDanhSachDanhMucAsync();
-                return Ok(danhMuc);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Lỗi: " + ex.Message);
-            }
-        }
-        // POST: api/SanPham
-        [HttpPost]
-        public async Task<IActionResult> ThemSanPhamMoi([FromBody] SanPham sp)
-        {
-            try
-            {
-                _context.SanPhams.Add(sp);
-                await _context.SaveChangesAsync();
-                return Ok(new { Success = true, Message = "Thêm bánh mới thành công!", Data = sp });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Success = false, Message = "Lỗi: " + ex.Message });
             }
         }
     }

@@ -17,7 +17,21 @@ public class KhachHangController : ControllerBase
     }
 
 
-    [HttpGet("TimKiem/{sdt}")]
+    [HttpGet("DanhSachKhachHang")]
+    public async Task<IActionResult> GetAllKhachHang()
+    {
+        return Ok(await _context.KhachHangs.ToListAsync());
+    }
+
+
+    [HttpPost("TaoKhachHangMoi")]
+    public async Task<IActionResult> Create(KhachHang kh)
+    {
+        var result = await _service.ThemKhachHangMoiAsync(kh);
+        return Ok(result);
+    }
+
+    [HttpGet("TimKiemKhachHang/{sdt}")]
     public async Task<IActionResult> GetBySdt(string sdt)
     {
         var kh = await _service.TimKhachHangTheoSDTAsync(sdt);
@@ -25,21 +39,7 @@ public class KhachHangController : ControllerBase
         return Ok(kh);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Create(KhachHang kh)
-    {
-        var result = await _service.ThemKhachHangMoiAsync(kh);
-        return Ok(result);
-    }
-    // GET: api/KhachHang (Lấy toàn bộ danh sách khách hàng)
-    [HttpGet]
-    public async Task<IActionResult> GetAllKhachHang()
-    {
-        return Ok(await _context.KhachHangs.ToListAsync());
-    }
-
-    // PUT: api/KhachHang/{id} (Cập nhật thông tin khách)
-    [HttpPut("{id}")]
+    [HttpPut("CapNhatThongTinKhachHang{id}")]
     public async Task<IActionResult> CapNhatKhachHang(int id, [FromBody] KhachHang khachHangCapNhat)
     {
         var kh = await _context.KhachHangs.FindAsync(id);
@@ -54,8 +54,7 @@ public class KhachHangController : ControllerBase
         return Ok(new { Message = "Cập nhật thành công!" });
     }
 
-    // DELETE: api/KhachHang/{id} (Xóa khách hàng)
-    [HttpDelete("{id}")]
+    [HttpDelete("XoaKhachHang{id}")]
     public async Task<IActionResult> XoaKhachHang(int id)
     {
         var kh = await _context.KhachHangs.FindAsync(id);

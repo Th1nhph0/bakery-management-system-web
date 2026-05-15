@@ -20,8 +20,51 @@ namespace Bakery.API.Controllers
             _context = context;
         }
 
-        // Endpoint: POST api/DonBanhCustom/DatBanh
-        [HttpPost("DatBanh")]
+        [HttpGet("DanhSachDonBanhCustom")]
+        public async Task<IActionResult> LayTatCaDonBanhCustom()
+        {
+            try
+            {
+                // Lấy toàn bộ đơn Custom (Nếu muốn xịn thì Include thêm bảng DonHang để biết ngày giờ giao)
+                var danhSachCustom = await _context.DonBanhCustoms.ToListAsync();
+
+                if (danhSachCustom.Count == 0)
+                {
+                    return Ok(new { Message = "Hôm nay xưởng bánh rảnh rỗi, chưa có đơn Custom nào!" });
+                }
+
+                return Ok(danhSachCustom);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Lỗi xưởng bánh: " + ex.Message });
+            }
+        }
+
+        [HttpGet("XemThongTinDonBanhCustom/{donHangId}")]
+        public async Task<IActionResult> GetChiTietCustom(int donHangId)
+        {
+            try
+            {
+                var thongTinCustom = await _context.DonBanhCustoms
+                                           .FirstOrDefaultAsync(c => c.DonHangId == donHangId);
+
+                // Nếu không tìm thấy (lỡ truyền nhầm ID của đơn bánh ngọt bình thường)
+                if (thongTinCustom == null)
+                {
+                    return NotFound(new { Message = "Đơn hàng này không có thông tin yêu cầu Custom!" });
+                }
+
+                // Trả về toàn bộ chi tiết: Nhan_Banh, Mau_Sac_Chu_Dao, Ghi_Chu...
+                return Ok(thongTinCustom);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
+
+        [HttpPost("TaoDonHangDatBanhCustom")]
         public async Task<IActionResult> DatBanhCustom([FromBody] DonBanhCustomRequest request)
         {
             try
@@ -47,44 +90,33 @@ namespace Bakery.API.Controllers
                 });
             }
         }
-        [HttpGet("TheoDonHang/{donHangId}")]
-        public async Task<IActionResult> GetChiTietCustom(int donHangId)
+
+        [HttpPut("CapNhatDonBanhCustom/{donHangId}")]
+        public async Task<IActionResult> CapNhatDonCustom(int donHangId, [FromBody] UpdateDonBanhCustom request)
         {
+            // Tìm đơn custom CHÍNH XÁC dựa vào mã Đơn Hàng (donHangId)
+            var donCustomTonTai = await _context.DonBanhCustoms.FirstOrDefaultAsync(c => c.DonHangId == donHangId);
+
+            if (donCustomTonTai == null)
+            {
+                return NotFound(new { Message = $"Không tìm thấy đơn bánh thiết kế nào thuộc Mã hóa đơn {donHangId}!" });
+            }
+
+            // Gán dữ liệu từ DTO (Gói hàng siêu gọn) vào Database
+            donCustomTonTai.LoaiYeuCau = request.Loai_Yeu_Cau;
+            donCustomTonTai.KichThuocSoLuong = request.Kich_Thuoc_So_Luong;
+            donCustomTonTai.NhanBanh = request.Nhan_Banh;
+            donCustomTonTai.MauSacChuDao = request.Mau_Sac;
+            donCustomTonTai.GhiChu = request.Ghi_Chu;
             try
             {
-                var thongTinCustom = await _context.DonBanhCustoms
-                                           .FirstOrDefaultAsync(c => c.DonHangId == donHangId);
-
-                // Nếu không tìm thấy (lỡ truyền nhầm ID của đơn bánh ngọt bình thường)
-                if (thongTinCustom == null)
-                {
-                    return NotFound(new { Message = "Đơn hàng này không có thông tin yêu cầu Custom!" });
-                }
-
-                // Trả về toàn bộ chi tiết: Nhan_Banh, Mau_Sac_Chu_Dao, Ghi_Chu...
-                return Ok(thongTinCustom);
+                await _context.SaveChangesAsync();
+                return Ok(new { Message = "Đã cập nhật chi tiết bánh thiết kế thành công!" });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Lỗi hệ thống: " + ex.Message });
             }
-        }
-        // PUT: api/DonBanhCustom/{id} (Cập nhật yêu cầu custom)
-        [HttpPut("{id}")]
-        public async Task<IActionResult> CapNhatCustom(int id, [FromBody] DonBanhCustom customCapNhat)
-        {
-            var custom = await _context.DonBanhCustoms.FindAsync(id);
-            if (custom == null) return NotFound();
-
-            custom.LoaiYeuCau = customCapNhat.LoaiYeuCau;
-            custom.KichThuocSoLuong = customCapNhat.KichThuocSoLuong;
-            custom.NhanBanh = customCapNhat.NhanBanh;
-            custom.MauSacChuDao= customCapNhat.MauSacChuDao;
-            custom.GhiChu = customCapNhat.GhiChu;
-            custom.NgayLayHang = customCapNhat.NgayLayHang;
-
-            await _context.SaveChangesAsync();
-            return Ok(new { Message = "Đã cập nhật thông tin bánh Custom!" });
         }
     }
 }
