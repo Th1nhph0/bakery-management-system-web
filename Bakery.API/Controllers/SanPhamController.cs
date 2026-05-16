@@ -1,7 +1,9 @@
 ﻿using Bakery.Data.Models;
+using Bakery.Data.DTOs;
 using Bakery.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace Bakery.API.Controllers
 {
@@ -44,17 +46,37 @@ namespace Bakery.API.Controllers
 
 
         [HttpPost("ThemSanPhamMoi")]
-        public async Task<IActionResult> ThemSanPhamMoi([FromBody] SanPham sp)
+        public async Task<IActionResult> ThemSanPhamMoi([FromBody] SanPhamUpdateDTO dto)
         {
+            // 1. Kiểm tra bộ lọc dữ liệu đầu vào
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
+                // 2. Map dữ liệu từ DTO sang thực thể Database Model gốc
+                var sp = new SanPham
+                {
+                    TenSanPham = dto.TenSanPham,
+                    DonGiaBan = dto.GiaBan,
+                    SoLuongTon = dto.SoLuong,
+                    PhanLoai = dto.PhanLoai, 
+                    MoTa = dto.MoTa,
+                    HinhAnh = dto.HinhAnh
+                };
+
+                // 3. Tiến hành lưu vào SQL Server
                 _context.SanPhams.Add(sp);
                 await _context.SaveChangesAsync();
-                return Ok(new { Success = true, Message = "Thêm bánh mới thành công!", Data = sp });
+
+                return Ok(new { Success = true, Message = "Thêm sản phẩm mới thành công!", Data = sp });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Success = false, Message = "Lỗi: " + ex.Message });
+                // Bắt các lỗi liên quan đến Database (như tràn bộ nhớ cột, sai khóa ngoại...)
+                return StatusCode(500, new { Success = false, Message = "Lỗi Database: " + ex.InnerException?.Message ?? ex.Message });
             }
         }
 
@@ -67,7 +89,7 @@ namespace Bakery.API.Controllers
 
                 if (data == null || data.Count == 0)
                 {
-                    return NotFound(new { Success = false, Message = "Không tìm thấy đồ ngọt nào khớp với từ khóa!" });
+                    return NotFound(new { Success = false, Message = "Không tìm thấy sản phẩm nào khớp với từ khóa!" });
                 }
 
                 return Ok(data);
@@ -77,27 +99,40 @@ namespace Bakery.API.Controllers
                 return StatusCode(500, new { Success = false, Message = "Lỗi hệ thống: " + ex.Message });
             }
         }
-   
-        [HttpPut("CapNhatSanPham{id}")]
-        public async Task<IActionResult> CapNhatSanPham(int id, [FromBody] SanPham sanPhamCapNhat)
+
+        [HttpPut("CapNhatSanPham/{id}")]
+        public async Task<IActionResult> CapNhatSanPham(int id, SanPhamUpdateDTO spUpdate)
         {
+            // Dò tìm sản phẩm cũ trong DB
+            var sp = await _context.SanPhams.FindAsync(id);
+            if (sp == null) return NotFound(new { Message = "Không tìm thấy sản phẩm!" });
+
+            // Cập nhật thông tin mới từ Frontend gửi lên
+            sp.TenSanPham = spUpdate.TenSanPham; // Hoặc sp.Ten_Banh, sp.TenSanPham tùy ông đặt
+            sp.DonGiaBan = spUpdate.GiaBan;   // Hoặc sp.DonGia, sp.Gia
+            sp.SoLuongTon = spUpdate.SoLuong; // Hoặc sp.SoLuongTon
+            sp.PhanLoai = spUpdate.PhanLoai;
+            sp.MoTa = spUpdate.MoTa;
+            sp.HinhAnh= spUpdate.HinhAnh;
+
+            if (!string.IsNullOrEmpty(spUpdate.HinhAnh))
+            {
+                sp.HinhAnh = spUpdate.HinhAnh;
+            }
+
             try
             {
-                var result = await _sanPhamService.CapNhatSanPhamAsync(id, sanPhamCapNhat);
-                if (!result)
-                {
-                    return NotFound(new { Success = false, Message = "Không tìm thấy sản phẩm để cập nhật!" });
-                }
-
-                return Ok(new { Success = true, Message = "Cập nhật sản phẩm thành công!" });
+                // 4. Lưu lại thay đổi vào SQL Server
+                await _context.SaveChangesAsync();
+                return Ok(new { Message = "Cập nhật thông tin bánh thành công!" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Success = false, Message = "Lỗi hệ thống: " + ex.Message });
+                return StatusCode(500, new { Message = "Lỗi hệ thống khi lưu dữ liệu", Detail = ex.Message });
             }
         }
 
-        [HttpDelete("XoaSanPham{id}")]
+        [HttpDelete("XoaSanPham/{id}")]
         public async Task<IActionResult> XoaSanPham(int id)
         {
             try
@@ -114,6 +149,18 @@ namespace Bakery.API.Controllers
             {
                 return StatusCode(500, new { Success = false, Message = "Lỗi xóa dữ liệu: " + ex.Message });
             }
+        }
+        [HttpGet("LaySanPham/{id}")]
+        public async Task<IActionResult> LaySanPham(int id)
+        {
+            var sp = await _context.SanPhams.FindAsync(id);
+
+            if (sp == null)
+            {
+                return NotFound(new { Message = "Không tìm thấy sản phẩm này!" });
+            }
+
+            return Ok(sp); 
         }
     }
 }

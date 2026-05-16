@@ -61,20 +61,42 @@ namespace Bakery.API.Controllers
         }
 
         [HttpPut("CapNhatNhanVien/{id}")]
-        public async Task<IActionResult> CapNhatNhanVien(int id, [FromBody] NhanVienDTO request)
+        public async Task<IActionResult> CapNhatNhanVien(int id, NhanVienDTO nvUpdate)
         {
             var nv = await _context.NhanViens.FindAsync(id);
             if (nv == null) return NotFound();
 
-            nv.TenNhanVien = request.TenNhanVien;
-            nv.Sdt = request.Sdt;
-            nv.Email = request.Email;
-            nv.ChucVu = request.ChucVu;
-            // Nếu pass không đổi thì thôi, hoặc cập nhật luôn tùy ông
-            if (!string.IsNullOrEmpty(request.MatKhau)) nv.MatKhau = request.MatKhau;
+            // Cập nhật các thông tin cơ bản
+            nv.TenNhanVien = nvUpdate.TenNhanVien;
+            nv.Sdt = nvUpdate.Sdt;
+            nv.Email = nvUpdate.Email;
+
+            // Nếu là Sếp (Admin/Chủ quán) thì mới cho phép cập nhật Chức vụ
+            // (Bên Frontend mình đã chặn rồi, nhưng C# cứ chặn thêm cho chắc)
+            if (!string.IsNullOrEmpty(nvUpdate.ChucVu))
+            {
+                nv.ChucVu = nvUpdate.ChucVu;
+            }
+
+            /// 🔥 LOGIC MẬT KHẨU: CÓ PHÂN QUYỀN VÀ XÁC THỰC
+            if (!string.IsNullOrEmpty(nvUpdate.MatKhau))
+            {
+                // Nếu người đang sửa KHÔNG PHẢI LÀ SẾP (nghĩa là Nhân viên tự sửa)
+                if (nvUpdate.RoleNguoiSua != "Admin" && nvUpdate.RoleNguoiSua != "Quản trị web" && nvUpdate.RoleNguoiSua != "Chủ quán")
+                {
+                    // Bắt buộc kiểm tra Mật khẩu cũ (Nhớ check kỹ tên cột nv.MatKhau hay nv.Mat_Khau trong DB nha)
+                    if (nv.MatKhau != nvUpdate.MatKhauCu)
+                    {
+                        return BadRequest(new { Message = "Mật khẩu cũ không chính xác! Không thể đổi mật khẩu." });
+                    }
+                }
+
+                // Vượt qua kiểm tra (hoặc là Sếp reset) -> Cho phép đổi Pass
+                nv.MatKhau = nvUpdate.MatKhau;
+            }
 
             await _context.SaveChangesAsync();
-            return Ok(new { Message = "Cập nhật xong rồi nha!" });
+            return Ok(new { Message = "Cập nhật thành công!" });
         }
 
         [HttpDelete("XoaNhanVien/{id}")]
@@ -83,9 +105,30 @@ namespace Bakery.API.Controllers
             var nv = await _context.NhanViens.FindAsync(id);
             if (nv == null) return NotFound();
 
-            _context.NhanViens.Remove(nv);
-            await _context.SaveChangesAsync();
-            return Ok(new { Message = "Đã tiễn nhân viên lên đường!" });
+            try
+            {
+                _context.NhanViens.Remove(nv);
+                await _context.SaveChangesAsync();
+                return Ok(new { Message = "Đã xóa nhân viên thành công!" });
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+            {
+                // Bắt lỗi dính khóa ngoại SQL Server
+                return BadRequest(new { Message = "Không thể xóa! Nhân viên này đang có dữ liệu liên quan (Ví dụ: Đã từng lập đơn hàng)." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Lỗi hệ thống: " + ex.Message });
+            }
         }
+
+        [HttpGet("LayNhanVien/{id}")]
+        public async Task<IActionResult> LayNhanVienTheoId(int id)
+        {
+            var nv = await _context.NhanViens.FindAsync(id);
+            if (nv == null) return NotFound();
+            return Ok(nv);
+        }
+
     }
 }

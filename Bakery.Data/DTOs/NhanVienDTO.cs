@@ -11,5 +11,7 @@ namespace Bakery.API.DTOs
         public string Email { get; set; }
         public string MatKhau { get; set; }
         public string ChucVu { get; set; }
+        public string? MatKhauCu { get; set; }
+        public string? RoleNguoiSua { get; set; } 
     }
 }

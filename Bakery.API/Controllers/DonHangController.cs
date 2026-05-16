@@ -121,15 +121,15 @@ namespace Bakery.API.Controllers
 
 
 
-        [HttpPut("CapNhatTrangThaiDonHang{id}")]
+        [HttpPut("CapNhatTrangThaiDonHang/{id}")]
         public async Task<IActionResult> CapNhatTrangThai(int id, [FromBody] UpdateStatusRequest request)
         {
             var donHang = await _context.DonHangs.FindAsync(id);
             if (donHang == null) return NotFound();
 
             donHang.TrangThai = request.TrangThaiMoi;
-            donHang.NguoiCapNhat = request.TenNhanVien; // Lưu tên người vừa thao tác
-            donHang.NgayCapNhat = DateTime.Now; // Lưu luôn giờ giấc cho chắc
+            donHang.NguoiCapNhat = request.TenNhanVien;
+            donHang.NgayCapNhat = DateTime.Now;
 
             await _context.SaveChangesAsync();
             return Ok(new { Message = $"Nhân viên {request.TenNhanVien} đã cập nhật trạng thái!" });
@@ -197,5 +197,185 @@ namespace Bakery.API.Controllers
                 return StatusCode(500, new { Message = "Lỗi tạo XML: " + ex.Message });
             }
         }
+
+        // 1. SỬA LẠI HÀM CŨ: Bổ sung thêm trường SanPhamId vào để Edit Mode nhận diện được ID bánh
+        [HttpGet("LayChiTietSanPhams/{donHangId}")]
+        public async Task<IActionResult> LayChiTietSanPhams(int donHangId)
+        {
+            try
+            {
+                var danhSachMon = await _context.ChiTietDonHangs
+                    .Where(ct => ct.DonHangId == donHangId)
+                    .Select(ct => new
+                    {
+                        SanPhamId = ct.SanPhamId, // 🔥 BỔ SUNG DÒNG NÀY
+                        TenSanPham = ct.SanPham.TenSanPham,
+                        HinhAnh = ct.SanPham.HinhAnh,
+                        SoLuong = ct.SoLuong,
+                        DonGia = ct.DonGia
+                    })
+                    .ToListAsync();
+
+                return Ok(danhSachMon);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Lỗi tải chi tiết món: " + ex.Message });
+            }
+        }
+
+        // 🔥 BỔ SUNG MỚI: API lấy thông tin chung của 1 đơn hàng theo ID
+        [HttpGet("LayDonHangTheoId/{id}")]
+        public async Task<IActionResult> GetDonHangById(int id)
+        {
+            var dh = await _context.DonHangs.FindAsync(id);
+            if (dh == null) return NotFound(new { Message = "Không tìm thấy đơn hàng!" });
+            return Ok(dh);
+        }
+
+        [HttpPut("CapNhatThongTinDonHang/{id}")]
+        public async Task<IActionResult> CapNhatDonHang(int id, [FromBody] CapNhatDonHangTongHopDTO request)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var donHang = await _context.DonHangs.FindAsync(id);
+            if (donHang == null) return NotFound(new { Message = "Không tìm thấy đơn hàng cần sửa!" });
+
+            try
+            {
+                // A. CẬP NHẬT BẢNG ĐƠN HÀNG CHÍNH (DONHANG)
+                donHang.KhachHangId = request.Khach_Hang_ID;
+                donHang.KhuyenMaiId = request.Khuyen_Mai_ID;
+                donHang.TenNguoiNhan = request.Ten_Nguoi_Nhan;
+                donHang.SdtNguoiNhan = request.SDT_Nguoi_Nhan;
+                donHang.DiaChiGiao = request.Dia_Chi_Giao;
+                donHang.NgayCapNhat = DateTime.Now;
+                donHang.NguoiCapNhat = "Võ Hoàng Thịnh";
+
+                // B. CẬP NHẬT BẢNG ĐƠN CUSTOM (DONBANHCUSTOM) NẾU CÓ CỜ LA_DON_CUSTOM
+               
+                    // B. CẬP NHẬT BẢNG ĐƠN CUSTOM (DONBANHCUSTOM) NẾU CÓ CỜ LA_DON_CUSTOM
+                    if (request.LaDonCustom)
+                    {
+                        var customDon = await _context.DonBanhCustoms.FirstOrDefaultAsync(c => c.DonHangId == id);
+                        if (customDon != null)
+                        {
+                            customDon.LoaiYeuCau = request.LoaiYeuCau;
+                            customDon.KichThuocSoLuong = request.KichThuocSoluong;
+                            customDon.MauSacChuDao = request.MauSacChuDao;
+                            customDon.GhiChu = request.GhiChu;
+
+                            // 🔥 FIX LỖI 1: Thêm ?? DateTime.Now để tránh lệch kiểu dữ liệu nullable
+                            customDon.NgayLayHang = request.NgayLayHang ?? DateTime.Now;
+
+                            // 🔥 FIX LỖI 2: Nếu chưa kịp update Database, ông tạm thời comment dòng dưới lại bằng dấu // nhé
+                            // Nếu đã làm Bước 2 dưới đây rồi thì giữ nguyên dòng này chạy bình thường:
+                            customDon.HinhAnh = request.HinhAnh;
+                        }
+                    }
+           
+
+                // C. LÀM SẠCH VÀ TÍNH LẠI GIỎ HÀNG CHI TIẾT
+                var chiTietsCu = await _context.ChiTietDonHangs.Where(ct => ct.DonHangId == id).ToListAsync();
+                if (chiTietsCu.Any()) _context.ChiTietDonHangs.RemoveRange(chiTietsCu);
+
+                decimal tongTienDonHang = 0;
+                foreach (var item in request.ChiTietGioHang)
+                {
+                    var sanPhamTonTai = await _context.SanPhams.FindAsync(item.SanPham_ID);
+                    if (sanPhamTonTai != null)
+                    {
+                        var chiTiet = new ChiTietDonHang
+                        {
+                            DonHangId = id,
+                            SanPhamId = item.SanPham_ID,
+                            SoLuong = item.So_Luong,
+                            DonGia = sanPhamTonTai.DonGiaBan,
+                        };
+                        _context.ChiTietDonHangs.Add(chiTiet);
+                        tongTienDonHang += ((sanPhamTonTai.DonGiaBan ?? 0) * item.So_Luong);
+                    }
+                }
+
+                donHang.TongTien = tongTienDonHang;
+                await _context.SaveChangesAsync();
+
+                return Ok(new { Message = "Cập nhật đơn hàng tổng hợp thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Lỗi hệ thống khi cập nhật: " + ex.Message });
+            }
+        }
+
+        [HttpDelete("XoaDonHang/{id}")]
+        public async Task<IActionResult> XoaDonHang(int id)
+        {
+            var donHang = await _context.DonHangs.FindAsync(id);
+            if (donHang == null) return NotFound(new { Message = "Không tìm thấy đơn hàng cần xóa!" });
+
+            try
+            {
+                // 1. Tìm và xóa toàn bộ các món bánh trong bảng chi tiết đơn trước
+                var chiTiets = await _context.ChiTietDonHangs.Where(ct => ct.DonHangId == id).ToListAsync();
+                if (chiTiets.Any())
+                {
+                    _context.ChiTietDonHangs.RemoveRange(chiTiets);
+                }
+
+                // 2. Kiểm tra nếu có liên kết đơn Custom thì xóa nốt (bọc lót nâng cao)
+                var customDon = await _context.DonBanhCustoms.FirstOrDefaultAsync(c => c.DonHangId == id);
+                if (customDon != null)
+                {
+                    _context.DonBanhCustoms.Remove(customDon);
+                }
+
+                // 3. Xóa đơn hàng chính
+                _context.DonHangs.Remove(donHang);
+
+                // Lưu tất cả thay đổi xuống database
+                await _context.SaveChangesAsync();
+                return Ok(new { Success = true, Message = "Đã xóa đơn hàng thành công khỏi hệ thống!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Success = false, Message = "Lỗi khi xóa đơn hàng: " + ex.Message });
+            }
+        }
+
+        [HttpPost("UploadAnhMauCustom")]
+        public async Task<IActionResult> UploadAnh(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { Message = "File ảnh không hợp lệ!" });
+
+            try
+            {
+                // Tạo đường dẫn đến thư mục wwwroot/uploads trong project Backend
+                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+
+                // Nếu thư mục uploads chưa tồn tại thì tự động tạo mới
+                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+                // Đổi tên file thành mã ngẫu nhiên để tránh trùng tên file (Ví dụ: a12b3c_elsa.jpg)
+                var fileName = Guid.NewGuid().ToString().Substring(0, 8) + Path.GetExtension(file.FileName);
+                var filePath = Path.Combine(folderPath, fileName);
+
+                // Tiến hành lưu file vật lý xuống ổ đĩa server
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Trả về đường link local dẫn tới file ảnh vừa up thành công
+                var linkAnhNoiBo = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
+                return Ok(new { Success = true, LinkAnh = linkAnhNoiBo });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Lỗi upload file: " + ex.Message });
+            }
+        }
+
     }
 }

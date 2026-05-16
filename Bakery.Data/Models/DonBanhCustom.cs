@@ -23,5 +23,6 @@ public partial class DonBanhCustom
 
     public DateTime NgayLayHang { get; set; }
 
+    public string? HinhAnh { get; set; }
     public virtual DonHang DonHang { get; set; } = null!;
 }

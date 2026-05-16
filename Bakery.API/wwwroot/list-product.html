@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="../assets/" data-template="vertical-menu-template-free">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Danh Sách Sản Phẩm</title>
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon/favicon.ico" />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/vendor/fonts/boxicons.css" />
+    <link rel="stylesheet" href="../assets/vendor/css/core.css" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="../assets/vendor/css/theme-default.css" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="../assets/css/demo.css" />
+    <script src="../assets/vendor/js/helpers.js"></script>
+    <script src="../assets/js/config.js"></script>
+</head>
+<body>
+    <div class="layout-wrapper layout-content-navbar">
+        <div class="layout-container">
+            <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+                <div class="app-brand demo">
+                    <a href="index.html" class="app-brand-link">
+                        <span class="app-brand-text demo menu-text fw-bolder ms-2">BAKERY</span>
+                    </a>
+                </div>
+                <div class="menu-inner-shadow"></div>
+                <ul class="menu-inner py-1">
+                    <li class="menu-item active">
+                        <a href="index.html" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-home-circle"></i>
+                            <div>Tổng Quan</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Quản Lý Cửa Hàng</span>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-group"></i>
+                            <div>Nhân sự</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="list-employee.html" class="menu-link">
+                                    <div>Danh sách Nhân viên</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="add-employee.html" class="menu-link">
+                                    <div>Thêm/Cập nhật Hồ sơ</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-cake"></i>
+                            <div>Kho Sản phẩm</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="list-product.html" class="menu-link">
+                                    <div>Danh sách Sản phẩm</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="add-product.html" class="menu-link">
+                                    <div>Thêm/Cập nhật Sản phẩm</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-user-pin"></i>
+                            <div>Khách hàng</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="list-customer.html" class="menu-link">
+                                    <div>Danh sách Khách hàng</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="add-customer.html" class="menu-link">
+                                    <div>Thêm mới Khách hàng</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="menu-item">
+                        <a href="list-khuyenMai.html" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-user-pin"></i>
+                            <div>Khuyến mãi</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="list-khuyenMai.html" class="menu-link">
+                                    <div>Danh sách Khuyến mãi</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="add-khuyenMai.html" class="menu-link">
+                                    <div>Thêm mới Khuyến mãi</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Hệ Thống</span>
+                    </li>
+                    <li class="menu-item">
+                        <a href="auth-login-basic.html" class="menu-link" onclick="localStorage.clear();">
+                            <i class="menu-icon tf-icons bx bx-power-off text-danger"></i>
+                            <div class="text-danger">Đăng Xuất</div>
+                        </a>
+                    </li>
+
+                </ul>
+            </aside>
+
+            <div class="layout-page">
+                <div class="content-wrapper">
+                    <div class="container-xxl flex-grow-1 container-p-y">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Danh Sách Sản Phẩm</h5>
+                                <a href="add-product.html" class="btn btn-primary">
+                                    <i class="bx bx-plus me-1"></i> Thêm Sản Phẩm
+                                </a>
+                            </div>
+                            <div class="table-responsive text-nowrap">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 10%">Mã Sản phẩm</th>
+                                            <th style="width: 15%">Hình Ảnh</th>
+                                            <th style="width: 25%">Tên Sản phẩm</th>
+                                            <th style="width: 15%">Phân Loại</th>
+                                            <th style="width: 15%">Giá Bán</th>
+                                            <th style="width: 15%">Số lượng tồn</th>
+                                            <th style="width: 5%">Thao Tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="productTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="../assets/vendor/libs/popper/popper.js"></script>
+    <script src="../assets/vendor/js/bootstrap.js"></script>
+    <script src="../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="../assets/vendor/js/menu.js"></script>
+    <script src="../assets/js/main.js"></script>
+    <script src="assets/js/product.js"></script>
+</body>
+</html>

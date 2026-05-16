@@ -19,5 +19,7 @@ public partial class SanPham
 
     public int? SoLuongTon { get; set; }
 
+    public string? HinhAnh { get; set; }
+
     public virtual ICollection<ChiTietDonHang> ChiTietDonHangs { get; set; } = new List<ChiTietDonHang>();
 }

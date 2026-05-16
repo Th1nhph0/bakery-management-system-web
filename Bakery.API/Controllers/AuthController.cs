@@ -36,8 +36,7 @@ namespace Bakery.API.Controllers
             {
                 id = nhanVien.NhanVienId,
                 ten = nhanVien.TenNhanVien,
-                // Chỗ này gán cứng là Admin cho dễ test, hoặc lấy từ nhanVien.Chuc_Vu của ông
-                role = "Admin"
+                role = nhanVien.ChucVu
             });
         }
     }
