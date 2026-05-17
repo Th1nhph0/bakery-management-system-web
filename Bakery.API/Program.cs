@@ -19,7 +19,15 @@ builder.Services.AddScoped<Bakery.Services.DonHangService>();
 builder.Services.AddScoped<Bakery.Services.KhuyenMaiService>();
 builder.Services.AddScoped<Bakery.Services.DonBanhCustomService>();
 builder.Services.AddScoped<AdoNetHelper>();
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()    // Mở cửa cho mọi URL (localhost máy trường, ngrok...)
+              .AllowAnyHeader()    // Chấp nhận mọi loại Header
+              .AllowAnyMethod();   // Chấp nhận mọi Method (GET, POST, PUT, DELETE)
+    });
+});
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {

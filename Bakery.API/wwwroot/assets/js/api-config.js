@@ -1,3 +1,2 @@
-﻿const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-    ? "https://localhost:7122"
-    : window.location.origin;
+﻿const API_URL = "https://slouchy-sinister-retread.ngrok-free.dev";   
+  

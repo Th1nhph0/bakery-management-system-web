@@ -14,5 +14,4 @@ namespace Bakery.Data.DTOs
         public int So_Luong { get; set; }
     }
 
-    
 }

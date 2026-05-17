@@ -20,34 +20,38 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Gắn sự kiện lắng nghe công tắc gạt Custom Order thủ công
     const toggleSwitch = document.getElementById('checkIsCustomOrder');
-    if (toggleSwitch) {
+    const customSection = document.getElementById('formCustomOrderFields');
+
+    if (toggleSwitch && customSection) {
         toggleSwitch.addEventListener('change', function () {
             isCustomOrder = this.checked;
-            // Nếu người dùng chủ động tắt công tắc gạt -> Xóa sạch nội dung các ô Custom về rỗng
-            if (!this.checked) {
+            if (this.checked) {
+                customSection.style.display = "block"; // Bật công tắc -> Hiện khung vàng
+            } else {
+                customSection.style.display = "none";  // Tắt công tắc -> Ẩn khung vàng
                 clearCustomFields();
             }
         });
     }
 
-    // 🔥 THUẬT TOÁN ĐỘC CHIÊU: TỰ ĐỘNG BẬT CÔNG TẮC ĐƠN CUSTOM KHI PHÁT HIỆN CÓ HÀNH VI NHẬP LIỆU
+    // 🔥 ĐỘC CHIÊU: TỰ ĐỘNG ĐÓNG KHUNG NẾU NHÂN VIÊN XÓA SẠCH CHỮ TRONG CÁC Ô CUSTOM
     const danhSachOInputsCustom = document.querySelectorAll('#formCustomOrderFields input, #formCustomOrderFields textarea');
     danhSachOInputsCustom.forEach(input => {
         input.addEventListener('input', () => {
             let phatHienCoChu = false;
-
-            // Duyệt qua tất cả các ô xem có ô nào đang chứa chữ hoặc số tiền không
             danhSachOInputsCustom.forEach(item => {
                 if (item.type !== 'checkbox' && item.type !== 'file' && item.value.trim() !== '') {
                     phatHienCoChu = true;
                 }
             });
 
-            // Nếu phát hiện có dữ liệu gõ vào -> Tự động bật công tắc gạt và kích hoạt biến cờ đơn Custom
-            const congTacGat = document.getElementById('checkIsCustomOrder');
-            if (congTacGat) {
-                congTacGat.checked = phatHienCoChu;
-                isCustomOrder = phatHienCoChu;
+            if (toggleSwitch && customSection && !isProductLocked) {
+                // Nếu xóa sạch sành sanh chữ -> Tự tắt công tắc và ẩn luôn khung cho gọn
+                if (!phatHienCoChu) {
+                    toggleSwitch.checked = false;
+                    isCustomOrder = false;
+                    customSection.style.display = "none";
+                }
             }
         });
     });
@@ -60,10 +64,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ==========================================
-// 2. HÀM CHUYỂN ĐỔI CHẾ ĐỘ EDIT MODE - PHÒNG THỦ ĐA NỀN DỮ LIỆU
-// ==========================================
-// ==========================================
-// ĐÃ VÁ LỖI: HÀM EDIT MODE TỰ ĐỘNG TÍNH NGƯỢC TIỀN CUSTOM ĐỂ ĐỔ LÊN FORM
+// 2. HÀM CHUYỂN ĐỔI CHẾ ĐỘ EDIT MODE - ĐIỀU PHỐI ĐÓNG/MỞ KHUNG THÔNG MINH
 // ==========================================
 async function checkEditMode() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -81,8 +82,8 @@ async function checkEditMode() {
     }
 
     let laDonCustomGoc = false;
-    let totalDonHangGoc = 0; // Biến giữ tổng tiền gốc từ hóa đơn chính
-    let soTienGiamGoc = 0;   // Biến giữ số tiền giảm giá
+    let totalDonHangGoc = 0;
+    let soTienGiamGoc = 0;
 
     // A. Lấy thông tin đơn hàng chung hành chính
     try {
@@ -103,7 +104,6 @@ async function checkEditMode() {
             currentOrderStatus = dh.trang_thai || dh.trangThai || dh.TrangThai || 'Chờ xử lý';
             laDonCustomGoc = dh.laDonCustom || dh.LaDonCustom || dh.la_don_custom || dh.La_Don_Custom || false;
 
-            // Nạp giá trị tiền tệ tổng quan phục vụ tính toán ngược
             totalDonHangGoc = dh.tongTien || dh.TongTien || 0;
             soTienGiamGoc = dh.soTienGiam || dh.SoTienGiam || 0;
         }
@@ -121,8 +121,6 @@ async function checkEditMode() {
             items.forEach(item => {
                 let qty = item.soLuong || item.SoLuong || 0;
                 let price = item.donGia || item.DonGia || 0;
-
-                // Cộng dồn tiền giỏ bánh thường
                 tongTienBanhThuongHienTai += (qty * price);
 
                 gioHangTam.push({
@@ -138,30 +136,31 @@ async function checkEditMode() {
     // B. Kiểm tra và bốc dữ liệu Đơn bánh Custom lên Form
     try {
         const resCheck = await fetch(`${API_URL}/api/DonHang/KiemTraDonHang/${editId}`);
+        const customSection = document.getElementById('formCustomOrderFields');
+        const toggleBtn = document.getElementById('checkIsCustomOrder');
+
         if (resCheck.ok) {
             const resData = await resCheck.json();
             const laDonCustom = resData.laDonCustom !== undefined ? resData.laDonCustom : (resData.LaDonCustom !== undefined ? resData.LaDonCustom : laDonCustomGoc);
             const customData = resData.data || resData.Data || (resData.loaiYeuCau || resData.loai_yeu_cau || resData.LoaiYeuCau ? resData : null);
 
+            // 🔥 QUY ĐỊNH BẢO MẬT: Nếu là đơn Custom thì mới được phép bật công tắc và mở khung vàng!
             if (laDonCustom || customData) {
                 isCustomOrder = true;
-
-                const toggleBtn = document.getElementById('checkIsCustomOrder');
                 if (toggleBtn) toggleBtn.checked = true;
-
-                const customSection = document.getElementById('formCustomOrderFields');
                 if (customSection) customSection.style.display = "block";
 
                 if (customData) {
                     document.getElementById('customLoaiYeuCau').value = customData.loaiYeuCau || customData.LoaiYeuCau || customData.loai_yeu_cau || '';
-                    document.getElementById('customKichThuoc').value = customData.kichThuocSoluong || customData.KichThuocSoluong || customData.kich_thuoc_soluong || '';
+
+                    // 🎯 ĐÃ VÁ: Dò quét sạch cả chữ S viết hoa lẫn chữ s viết thường để lốt thuộc tính kích thước
+                    document.getElementById('customKichThuoc').value = customData.kichThuocSoLuong || customData.KichThuocSoLuong || customData.kichThuocSoluong || customData.KichThuocSoluong || customData.kich_thuoc_soluong || '';
+
                     document.getElementById('customMauSac').value = customData.mauSacChuDao || customData.MauSacChuDao || customData.mau_sac_chu_dao || '';
                     document.getElementById('customGhiChu').value = customData.ghiChu || customData.GhiChu || customData.ghi_chu || '';
 
-                    // 🔥 THUẬT TOÁN ÉP ĐỔ TIỀN REAL: Lấy tổng đơn + giảm giá - tiền bánh thường = Giá trị báo giá bánh Custom
                     let giaCustomTinhToan = totalDonHangGoc + soTienGiamGoc - tongTienBanhThuongHienTai;
                     if (giaCustomTinhToan < 0) giaCustomTinhToan = 0;
-
                     document.getElementById('customBaoGia').value = giaCustomTinhToan;
 
                     const dateRaw = customData.ngayLayHang || customData.NgayLayHang || customData.ngay_lay_hang;
@@ -169,11 +168,10 @@ async function checkEditMode() {
                         document.getElementById('customNgayLay').value = dateRaw.split('T')[0];
                     }
 
-                    // 🔥 ĐOẠN ĐÃ SỬA: Radar quét sạch mọi kiểu viết sai chính tả HinhANh từ SQL Server
                     const linkAnh = customData.HinhANh || customData.hinhANh || customData.HinhAnh || customData.hinhAnh || customData.hinh_anh || '';
                     document.getElementById('customHinhAnh').value = linkAnh;
 
-                    iif(linkAnh && linkAnh !== 'string' && linkAnh.trim() !== '') {
+                    if (linkAnh && linkAnh !== 'string' && linkAnh.trim() !== '') {
                         const previewContainer = document.getElementById('editPreviewContainer');
                         const previewImg = document.getElementById('customImgPreview');
                         if (previewContainer && previewImg) {
@@ -183,9 +181,14 @@ async function checkEditMode() {
                     }
                 }
             }
+            else {
+                // 🔥 ĐÃ THÊM: Nếu là đơn hàng tiêu chuẩn (bánh có sẵn) -> Ép tắt công tắc gạt và ẩn biến mất khung vàng!
+                isCustomOrder = false;
+                if (toggleBtn) toggleBtn.checked = false;
+                if (customSection) customSection.style.display = "none";
+            }
         }
     } catch (e) { console.error("Lỗi nạp thông tin bánh Custom:", e); }
- 
 
     // PHÂN QUYỀN ĐỘNG: NẾU ĐƠN ĐÃ ĐƯỢC DUYỆT -> KHÓA CỨNG SẢN PHẨM KHI EDIT
     if (currentOrderStatus !== "Chờ xử lý") {
@@ -212,8 +215,9 @@ async function checkEditMode() {
         document.getElementById('formAddOrder').prepend(alertBox);
     }
 }
+
 // ==========================================
-// 3. CÁC HÀM NẠP DROPDOWN (GIỮ NGUYÊN)
+// 3. CÁC HÀM DROPDOWN NỀN (GIỮ NGUYÊN)
 // ==========================================
 async function loadKhachHangs() { const select = document.getElementById('selectKhachHang'); try { const res = await fetch(`${API_URL}/api/KhachHang/DanhSachKhachHang`); const data = await res.json(); select.innerHTML = `<option value="0">👤 Khách hàng vãng lai (Mua tại quầy)</option>`; data.forEach(kh => { select.innerHTML += `<option value="${kh.khachHangId || kh.Id}">${kh.tenKhachHang || kh.TenKhachHang} - ${kh.sdt || kh.Sdt}</option>`; }); } catch (e) { console.error(e); } }
 async function loadSanPhams() { const select = document.getElementById('selectSanPham'); try { const res = await fetch(`${API_URL}/api/SanPham/HienThiDanhSachSanPham`); danhSachSanPhams = await res.json(); select.innerHTML = `<option value="">-- Chọn loại bánh --</option>`; danhSachSanPhams.forEach(sp => { const id = sp.sanPhamId || sp.Id || Object.values(sp)[0]; const ten = sp.tenSanPham || sp.TenSanPham; const maSP = `SP${id.toString().padStart(3, '0')}`; select.innerHTML += `<option value="${id}">[${maSP}] - ${ten}</option>`; }); } catch (e) { console.error(e); } }
@@ -223,7 +227,7 @@ function removeItemFromCart(index) { if (isProductLocked) return; gioHangTam.spl
 function renderCartTable() { const tbody = document.getElementById('cartTableBody'); tbody.innerHTML = ''; if (gioHangTam.length === 0) { tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-2">Chưa có sản phẩm nào trong giỏ hàng</td></tr>`; return; } gioHangTam.forEach((item, index) => { const actionBtn = isProductLocked ? `<button type="button" class="btn btn-sm btn-icon btn-outline-secondary" disabled title="Món bánh đã khóa tiến độ"><i class="bx bx-lock-alt"></i></button>` : `<button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="removeItemFromCart(${index})"><i class="bx bx-trash"></i></button>`; tbody.innerHTML += `<tr><td><strong>${item.Ten}</strong></td><td class="text-center"><span class="badge bg-label-info">${item.So_Luong}</span></td><td>${actionBtn}</td></tr>`; }); }
 
 // ==========================================
-// 4. LƯU TRỌN GÓI ĐƠN HÀNG (🔥 ĐÃ TINH CHỈNH ĐỌC BAO VÂY ĐA BIẾN)
+// 4. LƯU TRỌN GÓI ĐƠN HÀNG (ĐÃ TÍCH HỢP ĐỌC LỖI TIẾNG VIỆT)
 // ==========================================
 async function submitOrderForm(event) {
     event.preventDefault();
@@ -234,20 +238,17 @@ async function submitOrderForm(event) {
     const urlParams = new URLSearchParams(window.location.search);
     const editId = urlParams.get('id');
 
-    // Đọc cờ trạng thái nút gạt Custom tự động/thủ công trên giao diện
     const congTacMoiNhat = document.getElementById('checkIsCustomOrder');
     const giaTriCustomThucTe = congTacMoiNhat ? congTacMoiNhat.checked : isCustomOrder;
 
     const khachHangVal = $('#selectKhachHang').val();
     const promoValue = $('#selectKhuyenMai').val();
 
-    // Nếu không gạt nút bánh Custom và giỏ hàng trống thì báo lỗi chặn form
     if (!giaTriCustomThucTe && gioHangTam.length === 0) {
         alert("Giỏ hàng trống! Vui lòng chọn bánh tiêu chuẩn hoặc điền thông tin Đơn bánh thiết kế riêng.");
         return;
     }
 
-    // Thu thập dữ liệu thô từ các trường nhập liệu Custom bánh thiết kế
     const loaiYeuCauVal = document.getElementById('customLoaiYeuCau').value;
     const kichThuocVal = document.getElementById('customKichThuoc').value;
     const mauSacVal = document.getElementById('customMauSac').value;
@@ -268,13 +269,11 @@ async function submitOrderForm(event) {
         Trang_Thai: currentOrderStatus,
         trang_thai: currentOrderStatus,
 
-        // Giữ nguyên các trường hành chính phía trên...
         ChiTietGioHang: gioHangTam.map(item => ({
             SanPham_ID: item.SanPham_ID,
             So_Luong: item.So_Luong
         })),
 
-        // 🎯 ĐỒNG BỘ CHUẨN ĐÉT VỚI DTO C# (Bỏ các biến snake_case thừa thãi đi cho gọn sạch code)
         LaDonCustom: giaTriCustomThucTe,
         LoaiYeuCau: giaTriCustomThucTe ? loaiYeuCauVal : null,
         KichThuocSoluong: giaTriCustomThucTe ? kichThuocVal : null,
@@ -304,7 +303,15 @@ async function submitOrderForm(event) {
             window.location.href = 'list-order.html';
         } else {
             const err = await response.json();
-            alert(err.message || "Lưu dữ liệu thất bại!");
+            if (err.errors) {
+                let thongBaoLoi = "⚠️ HỆ THỐNG TỪ CHỐI LƯU VÌ CÁC LỖI SAU:\n\n";
+                for (let key in err.errors) {
+                    thongBaoLoi += "❌ " + err.errors[key][0] + "\n";
+                }
+                alert(thongBaoLoi);
+            } else {
+                alert(err.message || err.Message || "Lưu dữ liệu thất bại!");
+            }
         }
     } catch (e) { console.error("Lỗi lưu đơn hàng:", e); }
 }
