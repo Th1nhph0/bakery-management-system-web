@@ -234,110 +234,173 @@ function sortOrders() {
 
 document.addEventListener('DOMContentLoaded', fetchAllOrders);
 
-// 🔥 CẬP NHẬT: Hàm nạp toàn bộ danh sách bánh và ảnh mẫu Custom lên Modal Pop-up (Bản Vá Lỗi Trống Thông Tin)
+// 🔥 BẢN NÂNG CẤP: ĐƯA BÁNH CUSTOM HIỂN THỊ THÀNH 1 DÒNG TRONG BẢNG MÓN ĂN CHI TIẾT
 async function showOrderDetails(donHangId, laCustom) {
     const dh = globalOrders.find(o => (o.donHangId === donHangId || o.DonHangId === donHangId));
     if (!dh) return;
 
-    // A. Đổ thông tin cơ bản
+    // A. Đổ thông tin hành chính cơ bản
     document.getElementById('modalOrderTitle').innerText = `Chi Tiết Đơn Hàng: #${dh.maDhHienThi || 'DH' + donHangId}`;
-    document.getElementById('modalTenNguoiNhan').value = dh.tenNguoiNhan || 'Khách vãng lai';
-    document.getElementById('modalSdtNguoiNhan').value = dh.sdtNguoiNhan || 'Không có';
-    document.getElementById('modalDiaChiGiao').value = dh.diaChiGiao || 'Nhận tại tiệm bánh';
-    document.getElementById('modalTongTien').value = new Intl.NumberFormat('vi-VN').format(dh.tongTien || 0) + ' đ';
-    document.getElementById('modalNgayDat').value = new Date(dh.ngayDatHang).toLocaleString('vi-VN');
+    document.getElementById('modalTenNguoiNhan').value = dh.tenNguoiNhan || dh.TenNguoiNhan || 'Khách vãng lai';
+    document.getElementById('modalSdtNguoiNhan').value = dh.sdtNguoiNhan || dh.SdtNguoiNhan || 'Không có';
+    document.getElementById('modalDiaChiGiao').value = dh.diaChiGiao || dh.DiaChiGiao || 'Nhận tại tiệm bánh';
+    document.getElementById('modalTongTien').value = new Intl.NumberFormat('vi-VN').format(dh.tongTien || dh.TongTien || 0) + ' đ';
+    document.getElementById('modalNgayDat').value = new Date(dh.ngayDatHang || dh.NgayDatHang).toLocaleString('vi-VN');
 
     const customSection = document.getElementById('modalCustomSection');
+    const pTableBody = document.getElementById('modalProductsTableBody');
 
-    // C. Kiểm tra nếu là đơn đặt Custom -> Bật vùng hiển thị bổ sung và gọi API KiemTraDonHang
-    if (laCustom) {
-        customSection.style.display = "block";
-        try {
-            const response = await fetch(`${API_URL}/api/DonHang/KiemTraDonHang/${donHangId}`);
-            if (response.ok) {
-                const resData = await response.json();
+    if (pTableBody) pTableBody.innerHTML = ''; // Dọn sạch nội dung bảng cũ trước khi nạp
 
-                // 🛡️ BẢO VỆ RADAR: Kiểm tra bọc lót cả chữ hoa lẫn chữ thường từ API trả về
-                const checkCustom = resData.laDonCustom !== undefined ? resData.laDonCustom : resData.LaDonCustom;
-                const customData = resData.data !== undefined ? resData.data : resData.Data;
+    let tongTienGioHang = 0; // Biến tính tổng tiền các món bánh tiêu chuẩn đi kèm
+    let itemsHtml = '';     // Chuỗi lưu tạm mã HTML các món bánh thường
 
-                if (checkCustom && customData) {
-                    // Áp dụng chống phân biệt hoa thường cho toàn bộ thuộc tính con của bảng DonBanhCustom
-                    const loaiYeuCau = customData.loaiYeuCau !== undefined ? customData.loaiYeuCau : customData.LoaiYeuCau;
-                    const kichThuoc = customData.kichThuocSoluong !== undefined ? customData.kichThuocSoluong : customData.KichThuocSoluong;
-                    const mauSac = customData.mauSacChuDao !== undefined ? customData.mauSacChuDao : customData.MauSacChuDao;
-                    const ghiChu = customData.ghiChu !== undefined ? customData.ghiChu : customData.GhiChu;
-                    const ngayLay = customData.ngayLayHang !== undefined ? customData.ngayLayHang : customData.NgayLayHang;
-
-                    document.getElementById('modalLoaiYeuCau').value = loaiYeuCau || 'Bánh đặt theo yêu cầu';
-                    document.getElementById('modalKichThuoc').value = kichThuoc || 'Chưa rõ quy cách';
-                    document.getElementById('modalMauSac').value = mauSac || 'Theo mẫu gửi';
-                    document.getElementById('modalGhiChuCustom').value = ghiChu || 'Không có yêu cầu ghi chú viết chữ';
-                    document.getElementById('modalNgayLay').value = ngayLay ? new Date(ngayLay).toLocaleDateString('vi-VN') : 'Lấy trong ngày';
-
-                    // HIỂN THỊ HÌNH ẢNH MẪU CUSTOM ĐẸP MẮT
-                    const imgContainer = document.getElementById('modalCustomImgContainer');
-                    let imgUrl = item.hinhAnh || item.HinhAnh || '';
-                    if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('../')) {
-                        imgUrl = '../' + imgUrl;
-                    } else if (!imgUrl) {
-                        imgUrl = '../assets/img/illustrations/page-misc-under-maintenance.png'; // Ảnh bọc lót nếu món đó không có ảnh
-                    }
-                    if (imgContainer) {
-                        if (customImgUrl) {
-                            imgContainer.innerHTML = `<img src="${customImgUrl}" alt="Ảnh mẫu từ khách" class="img-fluid rounded" style="max-height: 180px; object-fit: contain; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">`;
-                        } else {
-                            imgContainer.innerHTML = `<span class="text-muted small"><i class="bx bx-image-alt me-1"></i> Khách hàng không gửi kèm hình ảnh mẫu</span>`;
-                        }
-                    }
-                }
-            }
-        } catch (error) { console.error("Lỗi nạp dữ liệu đơn Custom:", error); }
-    } else {
-        if (customSection) customSection.style.display = "none";
-    }
-
-    // B. GỌI API LẤY DANH SÁCH SẢN PHẨM ĐÃ MUA (Dành cho cả đơn hàng thường và đơn custom)
+    // B. LẤY DANH SÁCH CÁC MÓN BÁNH TIÊU CHUẨN ĐÃ MUA (NẾU CÓ)
     try {
         const resItems = await fetch(`${API_URL}/api/DonHang/LayChiTietSanPhams/${donHangId}`);
         if (resItems.ok) {
             const items = await resItems.json();
-            const pTableBody = document.getElementById('modalProductsTableBody');
-            // 🔥 BỔ SUNG: Nếu đơn hàng cũ có lưu đường link ảnh, ép khung hình hiện ảnh lên ngay
-            if (hinhAnh) {
-                const previewContainer = document.getElementById('editPreviewContainer');
-                const previewImg = document.getElementById('customImgPreview');
-                if (previewContainer && previewImg) {
-                    previewImg.src = hinhAnh;
-                    previewContainer.style.display = "block"; // Mở hiển thị khối ảnh
+            items.forEach(item => {
+                let imgUrl = item.hinhAnh || item.HinhAnh || '';
+                if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('../')) {
+                    imgUrl = '../' + imgUrl;
+                } else if (!imgUrl) {
+                    imgUrl = '../assets/img/icons/unicons/cc-primary.png';
                 }
-            }
-            if (pTableBody) {
-                pTableBody.innerHTML = '';
 
-                if (items.length === 0) {
-                    pTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-2">Đơn hàng trống hoặc chưa lưu món!</td></tr>`;
-                } else {
-                    items.forEach(item => {
-                        const imgUrl = item.hinhAnh || item.HinhAnh || '../assets/img/illustrations/page-misc-under-maintenance.png';
-                        const name = item.tenSanPham || item.TenSanPham || 'Sản phẩm bánh';
-                        const qty = item.soLuong || item.SoLuong || 0;
-                        const price = new Intl.NumberFormat('vi-VN').format(item.donGia || item.DonGia || 0) + ' đ';
+                const name = item.tenSanPham || item.TenSanPham || 'Sản phẩm bánh';
+                const qty = item.soLuong || item.SoLuong || 0;
+                const priceGoc = item.donGia || item.DonGia || 0;
 
-                        pTableBody.innerHTML += `
-                            <tr>
-                                <td><img src="${imgUrl}" width="35" height="35" class="rounded" style="object-fit:cover;"></td>
-                                <td><span class="fw-semibold">${name}</span></td>
-                                <td class="text-center"><span class="badge bg-label-secondary">${qty}</span></td>
-                                <td><strong class="text-dark">${price}</strong></td>
-                            </tr>`;
-                    });
-                }
-            }
+                // Cộng dồn tiền giỏ hàng bánh thường
+                tongTienGioHang += (qty * priceGoc);
+
+                const priceFmt = new Intl.NumberFormat('vi-VN').format(priceGoc) + ' đ';
+
+                itemsHtml += `
+                    <tr>
+                        <td><img src="${imgUrl}" width="35" height="35" class="rounded" style="object-fit:cover;"></td>
+                        <td><span class="fw-semibold">${name}</span></td>
+                        <td class="text-center"><span class="badge bg-label-secondary">${qty}</span></td>
+                        <td><strong class="text-dark">${priceFmt}</strong></td>
+                    </tr>`;
+            });
         }
-    } catch (error) { console.error("Lỗi nạp danh sách sản phẩm của đơn hàng:", error); }
+    } catch (error) { console.error("Lỗi nạp danh sách sản phẩm:", error); }
 
-    // D. Lệnh kích hoạt nổ Modal lên màn hình
+    // C. NẾU LÀ ĐƠN CUSTOM -> TÍNH TOÁN VÀ CHÈN THÊM DÒNG BÁNH THIẾT KẾ LÊN ĐẦU BẢNG
+    if (laCustom) {
+        if (customSection) customSection.style.display = "block";
+        try {
+            const response = await fetch(`${API_URL}/api/DonHang/KiemTraDonHang/${donHangId}`);
+            if (response.ok) {
+                const resData = await response.json();
+                const checkCustom = resData.laDonCustom !== undefined ? resData.laDonCustom : resData.LaDonCustom;
+                const customData = resData.data !== undefined ? resData.data : resData.Data;
+
+                if (checkCustom && customData) {
+                    const loaiYeuCau = customData.loaiYeuCau || customData.LoaiYeuCau || 'Bánh đặt theo yêu cầu';
+
+                    // Đổ dữ liệu chữ vào các ô thông tin phụ dưới Modal
+                    document.getElementById('modalLoaiYeuCau').value = loaiYeuCau;
+                    document.getElementById('modalKichThuoc').value = customData.kichThuocSoluong || customData.KichThuocSoluong || 'Chưa rõ quy cách';
+                    document.getElementById('modalMauSac').value = customData.mauSacChuDao || customData.MauSacChuDao || 'Theo mẫu gửi';
+                    document.getElementById('modalGhiChuCustom').value = customData.ghiChu || customData.GhiChu || 'Không có';
+
+                    const ngayLay = customData.ngayLayHang || customData.NgayLayHang;
+                    document.getElementById('modalNgayLay').value = ngayLay ? new Date(ngayLay).toLocaleDateString('vi-VN') : 'Lấy trong ngày';
+
+                    // 💥 THUẬT TOÁN TỰ ĐỘNG BÓC GIÁ TIỀN BÁNH CUSTOM
+                    const tongTienTra = dh.tongTien || dh.TongTien || 0;
+                    const tienGiamGia = dh.soTienGiam || dh.SoTienGiam || 0;
+                    const tongTienGocTruocGiam = tongTienTra + tienGiamGia;
+
+                    let tienCustom = tongTienGocTruocGiam - tongTienGioHang;
+                    if (tienCustom < 0) tienCustom = 0;
+
+                    // Đổ vào cái ô độc lập bên dưới tiêu đề (Nếu có)
+                    const modalBaoGia = document.getElementById('modalBaoGiaCustom');
+                    if (modalBaoGia) {
+                        modalBaoGia.value = new Intl.NumberFormat('vi-VN').format(tienCustom) + ' đ';
+                    }
+
+                    // Xử lý link hình ảnh đại diện cho dòng Custom trong bảng
+                    const imgContainer = document.getElementById('modalCustomImgContainer');
+                    const customImgUrl = customData.hinhAnh !== undefined ? customData.hinhAnh : customData.HinhAnh;
+                    let customImgHtml = '';
+
+                    if (customImgUrl && customImgUrl !== 'string') {
+                        customImgHtml = customImgUrl;
+                        if (imgContainer) {
+                            imgContainer.innerHTML = `<img src="${customImgUrl}" alt="Ảnh mẫu từ khách" class="img-fluid rounded" style="max-height: 180px; object-fit: contain; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">`;
+                        }
+                    } else {
+                        customImgHtml = '../assets/img/icons/unicons/cc-primary.png'; // Lấy icon làm ảnh đại diện tạm thời
+                        if (imgContainer) {
+                            imgContainer.innerHTML = `<span class="text-muted small"><i class="bx bx-image-alt me-1"></i> Khách hàng không gửi kèm hình ảnh mẫu</span>`;
+                        }
+                    }
+
+                    // 🔥 PHÉP MÀU: Tạo ra một dòng TR mang phong cách Warning vàng óng để tôn vinh món bánh Custom
+                    const customRowHtml = `
+                        <tr class="table-warning" style="background-color: #fff3cd !important;">
+                            <td><img src="${customImgHtml}" width="35" height="35" class="rounded border border-warning" style="object-fit:cover;"></td>
+                            <td><span class="fw-bold text-warning"><i class="bx bx-star bx-tada me-1"></i> [BÁNH THIẾT KẾ] - ${loaiYeuCau}</span></td>
+                            <td class="text-center"><span class="badge bg-warning">1</span></td>
+                            <td><strong class="text-warning">${new Intl.NumberFormat('vi-VN').format(tienCustom)} đ</strong></td>
+                        </tr>`;
+
+                    // Xuất dữ liệu: Dòng bánh Custom xếp đầu, các món mua kèm xếp dưới
+                    if (pTableBody) {
+                        pTableBody.innerHTML = customRowHtml + itemsHtml;
+                    }
+                }
+            }
+        } catch (error) { console.error("Lỗi nạp dữ liệu Custom:", error); }
+    } else {
+        // Nếu là đơn bánh thường (không gạt nút vàng), ẩn khối Custom đi và đổ bảng thường
+        if (customSection) customSection.style.display = "none";
+        if (pTableBody) {
+            pTableBody.innerHTML = itemsHtml || `<tr><td colspan="4" class="text-center text-muted py-2">Đơn hàng trống hoặc chưa lưu món!</td></tr>`;
+        }
+    }
+
+    // D. Bật Modal nổi lên màn hình
     const myModal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
     myModal.show();
+}
+
+// 🔥 BẢN CẬP NHẬT: KẾT HỢP LỌC TAB, TRẠNG THÁI VÀ Ô TÌM KIẾM CHỮ
+function executeCombinedFilter() {
+    let filtered = [...globalOrders];
+
+    // 1. Lọc theo loại đơn (Tiêu chuẩn / Custom)
+    if (currentTypeFilter === "standard") {
+        filtered = filtered.filter(d => d.laDonCustom === false || d.LaDonCustom === false);
+    } else if (currentTypeFilter === "custom") {
+        filtered = filtered.filter(d => d.laDonCustom === true || d.LaDonCustom === true);
+    }
+
+    // 2. Lọc theo trạng thái đơn hàng
+    if (currentStatusFilter !== "All") {
+        filtered = filtered.filter(d => (d.trangThai === currentStatusFilter || d.TrangThai === currentStatusFilter));
+    }
+
+    // 3. 🔥 KHÚC QUAN TRỌNG: Đọc chữ từ ô tìm kiếm để lọc Mã đơn hoặc Tên khách
+    const searchInput = document.getElementById('searchOrderInput');
+    if (searchInput) {
+        const searchText = searchInput.value.toLowerCase().trim();
+        if (searchText !== "") {
+            filtered = filtered.filter(d => {
+                const maHienThi = (d.maDhHienThi || `DH${d.donHangId || d.DonHangId}`).toLowerCase();
+                const tenKhach = (d.tenNguoiNhan || d.TenNguoiNhan || 'Khách vãng lai').toLowerCase();
+
+                // Nếu khớp mã đơn (VD: dh001) HOẶC khớp tên người nhận thì cho qua
+                return maHienThi.includes(searchText) || tenKhach.includes(searchText);
+            });
+        }
+    }
+
+    // Đổ mảng dữ liệu đã lọc sạch sẽ ra giao diện dạng thẻ
+    renderOrderGrid(filtered);
 }

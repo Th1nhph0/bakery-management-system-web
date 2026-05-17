@@ -30,7 +30,11 @@
                             <div>Tổng Quan</div>
                         </a>
                     </li>
-                    <li class="menu-header small text-uppercase"><span class="menu-header-text">Quản Lý Cửa Hàng</span></li>
+
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Quản Lý Cửa Hàng</span>
+                    </li>
+
                     <li class="menu-item">
                         <a href="javascript:void(0);" class="menu-link menu-toggle">
                             <i class="menu-icon tf-icons bx bx-group"></i>
@@ -38,29 +42,59 @@
                         </a>
                         <ul class="menu-sub">
                             <li class="menu-item">
-                                <a href="list-employee.html" class="menu-link"><div>Danh sách Nhân viên</div></a>
+                                <a href="list-employee.html" class="menu-link">
+                                    <div>Danh sách Nhân viên</div>
+                                </a>
                             </li>
                             <li class="menu-item">
-                                <a href="add-employee.html" class="menu-link"><div>Thêm/Cập nhật Hồ sơ</div></a>
+                                <a href="add-employee.html" class="menu-link">
+                                    <div>Thêm/Cập nhật Hồ sơ</div>
+                                </a>
                             </li>
                         </ul>
                     </li>
-                    <li class="menu-item active open">
+
+                    <li class="menu-item">
                         <a href="javascript:void(0);" class="menu-link menu-toggle">
                             <i class="menu-icon tf-icons bx bx-cake"></i>
                             <div>Kho Sản phẩm</div>
                         </a>
                         <ul class="menu-sub">
                             <li class="menu-item">
-                                <a href="list-product.html" class="menu-link"><div>Danh sách Sản phẩm</div></a>
+                                <a href="list-product.html" class="menu-link">
+                                    <div>Danh sách Sản phẩm</div>
+                                </a>
                             </li>
-                            <li class="menu-item active">
-                                <a href="add-product.html" class="menu-link"><div>Thêm/Cập nhật Sản phẩm</div></a>
+                            <li class="menu-item">
+                                <a href="add-product.html" class="menu-link">
+                                    <div>Thêm/Cập nhật Sản phẩm</div>
+                                </a>
                             </li>
                         </ul>
+                    </li>
+
                     <li class="menu-item">
-                        <a href="list-khuyenMai.html" class="menu-link menu-toggle">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
                             <i class="menu-icon tf-icons bx bx-user-pin"></i>
+                            <div>Khách hàng</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="list-customer.html" class="menu-link">
+                                    <div>Danh sách Khách hàng</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="add-customer.html" class="menu-link">
+                                    <div>Thêm mới Khách hàng</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-gift"></i>
                             <div>Khuyến mãi</div>
                         </a>
                         <ul class="menu-sub">
@@ -76,6 +110,25 @@
                             </li>
                         </ul>
                     </li>
+                    <li class="menu-item">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-receipt"></i>
+                            <div>Đơn hàng</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="list-order.html" class="menu-link">
+                                    <div>Danh sách Đơn hàng</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="add-order.html" class="menu-link">
+                                    <div>Thêm mới Đơn hàng</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
                     <li class="menu-header small text-uppercase">
                         <span class="menu-header-text">Hệ Thống</span>
                     </li>
@@ -130,8 +183,18 @@
                                                 <textarea class="form-control" id="moTa" rows="3" placeholder="Nhập thành phần, hương vị..."></textarea>
                                             </div>
                                             <div class="mb-3">
-                                                <label class="form-label" for="hinhAnh">Link hình ảnh (URL)</label>
-                                                <input type="text" class="form-control" id="hinhAnh" placeholder="https://..." />
+                                                <label class="form-label fw-bold text-primary" for="fileAnhSanPham">TẢI HÌNH ẢNH SẢN PHẨM LÊN (FILE ĐÍNH KÈM)</label>
+
+                                                <input type="file" class="form-control" id="fileAnhSanPham" accept="image/*" onchange="uploadAnhSanPham()" />
+
+                                                <input type="hidden" id="linkHinhAnh" />
+
+                                                <small id="uploadStatusSP" class="text-muted d-block mt-1"></small>
+
+                                                <div id="previewContainerSP" class="mt-2" style="display: none;">
+                                                    <small class="text-muted d-block mb-1">Ảnh sản phẩm hiện tại:</small>
+                                                    <img id="previewImgSP" src="" class="img-fluid rounded border shadow-sm" style="max-height: 150px; object-fit: contain; background: #f8f9fa; padding: 4px;" />
+                                                </div>
                                             </div>
                                             <button type="submit" class="btn btn-primary">Lưu Sản Phẩm</button>
                                         </form>

@@ -76,7 +76,7 @@ namespace Bakery.API.Controllers
                 _context.DonHangs.Add(donHangMoi);
                 await _context.SaveChangesAsync(); // SQL sẽ "hét" lên ở đây nếu truyền ID tào lao
             }
-            catch (DbUpdateException ex)
+            catch (DbUpdateException)
             {
                 // Bắt đúng lỗi của SQL và trả về 400 Bad Request cho Frontend
                 return BadRequest(new { Message = "Lỗi dữ liệu: Mã khách hàng, nhân viên hoặc khuyến mãi không tồn tại trong hệ thống!" });
@@ -84,7 +84,7 @@ namespace Bakery.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Lỗi máy chủ: " + ex.Message });
-            } // Lưu để lấy được mã Đơn Hàng ID
+            }
 
             decimal tongTienDonHang = 0;
 
@@ -112,14 +112,25 @@ namespace Bakery.API.Controllers
                 }
             }
 
-            // 3. Cập nhật lại tổng tiền thực tế
-            donHangMoi.TongTien = tongTienDonHang;
+            // 3. TÍNH KHUYẾN MÃI VÀ TRỪ TIỀN AN TOÀN
+            decimal soTienGiam = 0;
+            if (request.Khuyen_Mai_ID.HasValue)
+            {
+                var khuyenMai = await _context.KhuyenMais.FindAsync(request.Khuyen_Mai_ID.Value);
+                if (khuyenMai != null && khuyenMai.PhanTramGiam.HasValue)
+                {
+                    soTienGiam = tongTienDonHang * ((decimal)khuyenMai.PhanTramGiam.Value / 100);
+                }
+            }
+
+            donHangMoi.SoTienGiam = soTienGiam;
+            donHangMoi.TongTien = tongTienDonHang - soTienGiam; // Trừ tiền giảm để ra tổng khách trả
+
             await _context.SaveChangesAsync();
 
+            // 🔥 ĐÂY CHÍNH LÀ DÒNG RETURN ÔNG BỊ THIẾU NÈ:
             return Ok(new { Message = "Tạo đơn hàng thành công!", DonHangId = donHangMoi.DonHangId });
         }
-
-
 
         [HttpPut("CapNhatTrangThaiDonHang/{id}")]
         public async Task<IActionResult> CapNhatTrangThai(int id, [FromBody] UpdateStatusRequest request)
@@ -248,14 +259,11 @@ namespace Bakery.API.Controllers
                 donHang.KhuyenMaiId = request.Khuyen_Mai_ID;
                 donHang.TenNguoiNhan = request.Ten_Nguoi_Nhan;
                 donHang.SdtNguoiNhan = request.SDT_Nguoi_Nhan;
-                donHang.DiaChiGiao = request.Dia_Chi_Giao;
+                donHang.DiaChiGiao = request.Dia_Chi_Giao;  
                 donHang.NgayCapNhat = DateTime.Now;
-                donHang.NguoiCapNhat = "Võ Hoàng Thịnh";
-
-                // B. CẬP NHẬT BẢNG ĐƠN CUSTOM (DONBANHCUSTOM) NẾU CÓ CỜ LA_DON_CUSTOM
-               
-                    // B. CẬP NHẬT BẢNG ĐƠN CUSTOM (DONBANHCUSTOM) NẾU CÓ CỜ LA_DON_CUSTOM
-                    if (request.LaDonCustom)
+                donHang.NguoiCapNhat = request.TenNhanVienCapNhat ?? "Nhân viên hệ thống";
+             
+                if (request.LaDonCustom)
                     {
                         var customDon = await _context.DonBanhCustoms.FirstOrDefaultAsync(c => c.DonHangId == id);
                         if (customDon != null)
@@ -271,15 +279,21 @@ namespace Bakery.API.Controllers
                             // 🔥 FIX LỖI 2: Nếu chưa kịp update Database, ông tạm thời comment dòng dưới lại bằng dấu // nhé
                             // Nếu đã làm Bước 2 dưới đây rồi thì giữ nguyên dòng này chạy bình thường:
                             customDon.HinhAnh = request.HinhAnh;
-                        }
+                            if (request.TongTienCustom.HasValue)
+                            {
+                                donHang.TongTien = request.TongTienCustom.Value;
+                            }
+
                     }
-           
+                    }
+
 
                 // C. LÀM SẠCH VÀ TÍNH LẠI GIỎ HÀNG CHI TIẾT
                 var chiTietsCu = await _context.ChiTietDonHangs.Where(ct => ct.DonHangId == id).ToListAsync();
                 if (chiTietsCu.Any()) _context.ChiTietDonHangs.RemoveRange(chiTietsCu);
 
-                decimal tongTienDonHang = 0;
+                // 🔥 VÁ LỖI 1: Lấy tiền báo giá Custom làm gốc (nếu có), ngược lại bắt đầu từ 0đ
+                decimal tongTienDonHang = request.LaDonCustom ? (request.TongTienCustom ?? 0) : 0;
                 foreach (var item in request.ChiTietGioHang)
                 {
                     var sanPhamTonTai = await _context.SanPhams.FindAsync(item.SanPham_ID);
@@ -293,12 +307,23 @@ namespace Bakery.API.Controllers
                             DonGia = sanPhamTonTai.DonGiaBan,
                         };
                         _context.ChiTietDonHangs.Add(chiTiet);
+
+                        // Cộng dồn thêm tiền các món bánh có sẵn vào
                         tongTienDonHang += ((sanPhamTonTai.DonGiaBan ?? 0) * item.So_Luong);
                     }
                 }
+                decimal soTienGiam = 0;
+                if (request.Khuyen_Mai_ID.HasValue)
+                {
+                    var khuyenMai = await _context.KhuyenMais.FindAsync(request.Khuyen_Mai_ID.Value);
+                    if (khuyenMai != null && khuyenMai.PhanTramGiam.HasValue)
+                    {
+                        soTienGiam = tongTienDonHang * ((decimal)khuyenMai.PhanTramGiam.Value / 100);
+                    }
+                }
+                donHang.SoTienGiam = soTienGiam;
 
-                donHang.TongTien = tongTienDonHang;
-                await _context.SaveChangesAsync();
+                donHang.TongTien = tongTienDonHang - soTienGiam; await _context.SaveChangesAsync();
 
                 return Ok(new { Message = "Cập nhật đơn hàng tổng hợp thành công!" });
             }

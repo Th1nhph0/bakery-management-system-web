@@ -144,3 +144,50 @@ let menu, animate;
   // Auto update menu collapsed/expanded based on the themeConfig
   window.Helpers.setCollapsed(true, false);
 })();
+
+// 🔥 THUẬT TOÁN TÌM KIẾM ĐA NĂNG CHO MỌI BẢNG (GÕ TỚI ĐÂU LỌC TỚI ĐÓ)
+function searchTable() {
+    const input = document.getElementById("searchInput");
+    if (!input) return;
+
+    const filter = input.value.toLowerCase().trim();
+    // Tìm thẻ <tbody> đầu tiên trong trang (chứa dữ liệu)
+    const tbody = document.querySelector("tbody");
+    if (!tbody) return;
+
+    const rows = tbody.getElementsByTagName("tr");
+
+    for (let i = 0; i < rows.length; i++) {
+        // Gom toàn bộ chữ của tất cả các cột trong dòng đó lại
+        const rowText = rows[i].innerText.toLowerCase();
+
+        // Nếu chữ gõ vào có nằm trong dòng này -> Hiện lên, ngược lại -> Ẩn đi
+        if (rowText.includes(filter)) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Lấy tên trang hiện tại (VD: 'list-order.html')
+    let currentUrl = window.location.pathname.split('/').pop();
+    if (currentUrl === '' || currentUrl === '/') currentUrl = 'index.html';
+
+    // 2. Đi dò trong menu xem có cái link nào khớp không
+    const menuLinks = document.querySelectorAll('.menu-inner .menu-link');
+
+    menuLinks.forEach(link => {
+        if (link.getAttribute('href') === currentUrl) {
+            // Đánh dấu thẻ <li> chứa link đó là đang hoạt động
+            link.parentElement.classList.add('active');
+
+            // Đánh dấu cái Dropdown cha (nếu có) là đang mở
+            const parentMenu = link.closest('.menu-sub');
+            if (parentMenu) {
+                parentMenu.parentElement.classList.add('active', 'open');
+            }
+        }
+    });
+});

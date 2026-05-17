@@ -7,8 +7,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Ép hệ thống phải đợi tải xong hết toàn bộ các Dropdown dữ liệu nền từ DB lên trước
     await Promise.all([loadKhachHangs(), loadSanPhams(), loadKhuyenMais()]);
 
+    // 🔥 KÍCH HOẠT TÍNH NĂNG GÕ TÌM KIẾM CHO CÁC Ô CHỌN (SỬ DỤNG JQUERY SELECT2)
+    if ($.fn.select2) {
+        $('#selectKhachHang').select2({ width: '100%' });
+        $('#selectSanPham').select2({ width: '100%' });
+        $('#selectKhuyenMai').select2({ width: '100%' });
+    }
+
     // Gắn sự kiện lắng nghe công tắc gạt Custom Order
     const toggleSwitch = document.getElementById('checkIsCustomOrder');
+// ... (Toàn bộ code bên dưới giữ nguyên) ...
     if (toggleSwitch) {
         toggleSwitch.addEventListener('change', function () {
             isCustomOrder = this.checked; // ĐỒNG BỘ TRẠNG THÁI VỚI BIẾN TOÀN CỤC KHI GẠT
@@ -52,16 +60,36 @@ async function checkEditMode() {
     }
 
     // A. Lấy thông tin đơn hàng chung hành chính
+    // A. Lấy thông tin đơn hàng chung hành chính
     try {
         const response = await fetch(`${API_URL}/api/DonHang/LayDonHangTheoId/${editId}`);
         if (response.ok) {
             const dh = await response.json();
 
-            document.getElementById('selectKhachHang').value = dh.khachHangId !== undefined ? dh.khachHangId : (dh.KhachHangId || '');
-            document.getElementById('selectKhuyenMai').value = dh.khuyenMaiId !== undefined ? dh.khuyenMaiId : (dh.KhuyenMaiId || '');
+            const khachHangId = dh.khachHangId !== undefined ? dh.khachHangId : (dh.KhachHangId || '');
+            const khuyenMaiId = dh.khuyenMaiId !== undefined ? dh.khuyenMaiId : (dh.KhuyenMaiId || '');
+
+            $('#selectKhachHang').val(khachHangId).trigger('change');
+            $('#selectKhuyenMai').val(khuyenMaiId).trigger('change');
+
             document.getElementById('tenNguoiNhan').value = dh.tenNguoiNhan !== undefined ? dh.tenNguoiNhan : (dh.TenNguoiNhan || '');
             document.getElementById('sdtNguoiNhan').value = dh.sdtNguoiNhan !== undefined ? dh.sdtNguoiNhan : (dh.SdtNguoiNhan || '');
             document.getElementById('diaChiGiao').value = dh.diaChiGiao !== undefined ? dh.diaChiGiao : (dh.DiaChiGiao || '');
+
+            const rowTrangThai = document.getElementById('rowTrangThaiDonHang');
+            if (rowTrangThai) rowTrangThai.style.display = 'block'; // Hiện khung đỏ lên
+
+            const trangThaiHienTai = dh.trangThai !== undefined ? dh.trangThai : (dh.TrangThai || 'Chờ xử lý');
+            document.getElementById('selectTrangThai').value = trangThaiHienTai;
+            // 🔥 VÁ LỖI HIỂN THỊ TIỀN BÁO GIÁ: Trả lại tiền khuyến mãi vào tổng tiền gốc trước khi tách
+            const tongTienTra = dh.tongTien !== undefined ? dh.tongTien : (dh.TongTien || 0);
+            const tienGiam = dh.soTienGiam !== undefined ? dh.soTienGiam : (dh.SoTienGiam || 0);
+
+            // Cộng ngược lại tiền đã giảm để ra tổng giá trị thật của đơn hàng
+            const tongTienGoc = tongTienTra + tienGiam;
+
+            // Cất cái tổng tiền gốc này vào để khúc dưới bốc ra tính toán
+            document.getElementById('customBaoGia').setAttribute('data-tongtien', tongTienGoc);
         }
     } catch (e) { console.error("Lỗi nạp đơn hàng chung:", e); }
 
@@ -112,20 +140,32 @@ async function checkEditMode() {
         }
     } catch (e) { console.error("Lỗi nạp thông tin bánh Custom:", e); }
 
-    // C. Đổ lại giỏ hàng bánh tiêu chuẩn đi kèm (nếu có)
+    // C. Đổ lại giỏ hàng bánh tiêu chuẩn đi kèm (nếu có) VÀ TÍNH TIỀN BÁO GIÁ
     try {
         const resItems = await fetch(`${API_URL}/api/DonHang/LayChiTietSanPhams/${editId}`);
         if (resItems.ok) {
             const items = await resItems.json();
             gioHangTam = [];
+            let tongTienGioHang = 0; // Biến tính tổng tiền các món bánh tiêu chuẩn
+
             items.forEach(item => {
+                const sl = item.soLuong !== undefined ? item.soLuong : item.SoLuong;
+                const gia = item.donGia !== undefined ? item.donGia : item.DonGia;
+
                 gioHangTam.push({
                     SanPham_ID: item.sanPhamId !== undefined ? item.sanPhamId : item.SanPhamId,
                     Ten: item.tenSanPham !== undefined ? item.tenSanPham : item.TenSanPham,
-                    So_Luong: item.soLuong !== undefined ? item.soLuong : item.SoLuong
+                    So_Luong: sl
                 });
+                tongTienGioHang += (sl * gia); // Cộng tiền giỏ hàng
             });
             renderCartTable();
+
+            // 🔥 VÁ LỖI 2: Tách tiền báo giá Custom = (Tổng tiền đơn hàng) - (Tổng tiền giỏ hàng)
+            const tongTienDon = Number(document.getElementById('customBaoGia').getAttribute('data-tongtien')) || 0;
+            let tienBaoGia = tongTienDon - tongTienGioHang;
+            if (tienBaoGia < 0) tienBaoGia = 0;
+            document.getElementById('customBaoGia').value = tienBaoGia; // Đổ đúng tiền báo giá ra ô nhập liệu
         }
     } catch (e) { console.error(e); }
 }
@@ -182,19 +222,32 @@ async function uploadFileTuDong() {
 async function submitOrderForm(event) {
     event.preventDefault();
 
+    const tenNguoiDangNhap = localStorage.getItem('userName') || "Quản trị viên";
+    const idNguoiDangNhap = localStorage.getItem('userId') || 1;
+
+    if (gioHangTam.length === 0) {
+        alert("Giỏ hàng trống! Vui lòng chọn bánh.");
+        return;
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const editId = urlParams.get('id');
-    const promoValue = document.getElementById('selectKhuyenMai').value;
-
     const isCustomChecked = document.getElementById('checkIsCustomOrder').checked;
 
+    // 🔥 VÁ LỖI KHÔNG LƯU ĐƯỢC DỮ LIỆU MỚI: Bốc trực tiếp giá trị từ Select2 thông qua jQuery
+    const khachHangVal = $('#selectKhachHang').val();
+    const promoValue = $('#selectKhuyenMai').val();
+
     const orderData = {
-        Khach_Hang_ID: Number(document.getElementById('selectKhachHang').value),
-        Nhan_Vien_ID: 1,
+        // Nếu select rỗng (Khách vãng lai) thì gửi null xuống DB, ngược lại ép kiểu Số
+        Khach_Hang_ID: khachHangVal ? Number(khachHangVal) : null,
+        Nhan_Vien_ID: idNguoiDangNhap ? Number(idNguoiDangNhap) : 1,
         Khuyen_Mai_ID: promoValue ? Number(promoValue) : null,
-        Ten_Nguoi_Nhan: document.getElementById('tenNguoiNhan').value,
-        SDT_Nguoi_Nhan: document.getElementById('sdtNguoiNhan').value,
-        Dia_Chi_Giao: document.getElementById('diaChiGiao').value,
+        TrangThai: document.getElementById('selectTrangThai') ? document.getElementById('selectTrangThai').value : "Chờ xử lý",
+        Ten_Nguoi_Nhan: document.getElementById('tenNguoiNhan').value.trim() || `Khách mua tại quầy (${tenNguoiDangNhap})`,
+        SDT_Nguoi_Nhan: document.getElementById('sdtNguoiNhan').value.trim() || 'Không có',
+        Dia_Chi_Giao: document.getElementById('diaChiGiao').value.trim() || 'Nhận tại tiệm bánh',
+
         ChiTietGioHang: gioHangTam.map(item => ({
             SanPham_ID: item.SanPham_ID,
             So_Luong: item.So_Luong
@@ -206,7 +259,9 @@ async function submitOrderForm(event) {
         MauSacChuDao: isCustomChecked ? document.getElementById('customMauSac').value : null,
         GhiChu: isCustomChecked ? document.getElementById('customGhiChu').value : null,
         NgayLayHang: isCustomChecked && document.getElementById('customNgayLay').value ? document.getElementById('customNgayLay').value : null,
-        HinhAnh: isCustomChecked ? document.getElementById('customHinhAnh').value : null
+        HinhAnh: isCustomChecked ? document.getElementById('customHinhAnh').value : null,
+        TongTienCustom: isCustomChecked ? Number(document.getElementById('customBaoGia').value) : null,
+        TenNhanVienCapNhat: tenNguoiDangNhap,
     };
 
     const method = editId ? 'PUT' : 'POST';
@@ -242,7 +297,22 @@ function clearCustomFields() {
 
 // CÁC HÀM TẢI DROPDOWN BAN ĐẦU
 async function loadKhachHangs() { const select = document.getElementById('selectKhachHang'); try { const res = await fetch(`${API_URL}/api/KhachHang/DanhSachKhachHang`); const data = await res.json(); data.forEach(kh => { select.innerHTML += `<option value="${kh.khachHangId || kh.Id}">${kh.tenKhachHang || kh.TenKhachHang} - ${kh.sdt || kh.Sdt}</option>`; }); } catch (e) { console.error(e); } }
-async function loadSanPhams() { const select = document.getElementById('selectSanPham'); try { const res = await fetch(`${API_URL}/api/SanPham/HienThiDanhSachSanPham`); const data = await res.json(); data.forEach(sp => { const id = sp.sanPhamId || sp.Id || Object.values(sp)[0]; select.innerHTML += `<option value="${id}">${sp.tenSanPham || sp.TenSanPham}</option>`; }); } catch (e) { console.error(e); } }
+// 🔥 SỬA 3: Hiện kèm mã Sản Phẩm để nhân viên gõ tìm kiếm cực nhanh
+async function loadSanPhams() {
+    const select = document.getElementById('selectSanPham');
+    try {
+        const res = await fetch(`${API_URL}/api/SanPham/HienThiDanhSachSanPham`);
+        const data = await res.json();
+        data.forEach(sp => {
+            const id = sp.sanPhamId || sp.Id || Object.values(sp)[0];
+            const ten = sp.tenSanPham || sp.TenSanPham;
+            // Tạo mã ảo 3 số cho đẹp (VD: SP001, SP012)
+            const maSP = `SP${id.toString().padStart(3, '0')}`;
+
+            select.innerHTML += `<option value="${id}">[${maSP}] - ${ten}</option>`;
+        });
+    } catch (e) { console.error(e); }
+}
 async function loadKhuyenMais() { const select = document.getElementById('selectKhuyenMai'); try { const res = await fetch(`${API_URL}/api/KhuyenMai/HienThiCacMaKhuyenMai`); const data = await res.json(); data.forEach(km => { select.innerHTML += `<option value="${km.khuyenMaiId || km.Id}">${km.maCode || km.MaCode} (Giảm ${km.phanTramGiam}%)</option>`; }); } catch (e) { console.error(e); } }
 function addItemToCart() { const selectSp = document.getElementById('selectSanPham'); const inputSl = document.getElementById('inputSoLuong'); const spId = Number(selectSp.value); const tenSp = selectSp.options[selectSp.selectedIndex].text; const soLuong = Number(inputSl.value); if (!spId || soLuong < 1) { alert("Vui lòng chọn loại bánh và nhập số lượng!"); return; } const trungMon = gioHangTam.find(item => item.SanPham_ID === spId); if (trungMon) { trungMon.So_Luong += soLuong; } else { gioHangTam.push({ SanPham_ID: spId, Ten: tenSp, So_Luong: soLuong }); } renderCartTable(); }
 function removeItemFromCart(index) { gioHangTam.splice(index, 1); renderCartTable(); }

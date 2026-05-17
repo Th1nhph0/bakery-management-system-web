@@ -99,16 +99,119 @@
             <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
                 <div class="app-brand demo"><a href="index.html" class="app-brand-link"><span class="app-brand-text demo menu-text fw-bolder ms-2">BAKERY</span></a></div>
                 <ul class="menu-inner py-1">
-                    <li class="menu-item"><a href="index.html" class="menu-link"><i class="menu-icon tf-icons bx bx-home-circle"></i><div>Tổng Quan</div></a></li>
-                    <li class="menu-header small text-uppercase"><span class="menu-header-text">Quản Lý Cửa Hàng</span></li>
-                    <li class="menu-item"><a href="list-employee.html" class="menu-link"><i class="menu-icon tf-icons bx bx-group"></i><div>Nhân sự</div></a></li>
-                    <li class="menu-item"><a href="list-product.html" class="menu-link"><i class="menu-icon tf-icons bx bx-cake"></i><div>Kho Sản phẩm</div></a></li>
-                    <li class="menu-item"><a href="list-customer.html" class="menu-link"><i class="menu-icon tf-icons bx bx-user-pin"></i><div>Khách hàng</div></a></li>
-                    <li class="menu-item active open">
-                        <a href="javascript:void(0);" class="menu-link menu-toggle"><i class="menu-icon tf-icons bx bx-receipt"></i><div>Đơn hàng</div></a>
+                    <li class="menu-item">
+                        <a href="index.html" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-home-circle"></i>
+                            <div>Tổng Quan</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Quản Lý Cửa Hàng</span>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-group"></i>
+                            <div>Nhân sự</div>
+                        </a>
                         <ul class="menu-sub">
-                            <li class="menu-item active"><a href="list-order.html" class="menu-link"><div>Danh sách Đơn hàng</div></a></li>
+                            <li class="menu-item">
+                                <a href="list-employee.html" class="menu-link">
+                                    <div>Danh sách Nhân viên</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="add-employee.html" class="menu-link">
+                                    <div>Thêm/Cập nhật Hồ sơ</div>
+                                </a>
+                            </li>
                         </ul>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-cake"></i>
+                            <div>Kho Sản phẩm</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="list-product.html" class="menu-link">
+                                    <div>Danh sách Sản phẩm</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="add-product.html" class="menu-link">
+                                    <div>Thêm/Cập nhật Sản phẩm</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-user-pin"></i>
+                            <div>Khách hàng</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="list-customer.html" class="menu-link">
+                                    <div>Danh sách Khách hàng</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="add-customer.html" class="menu-link">
+                                    <div>Thêm mới Khách hàng</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-gift"></i>
+                            <div>Khuyến mãi</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="list-khuyenMai.html" class="menu-link">
+                                    <div>Danh sách Khuyến mãi</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="add-khuyenMai.html" class="menu-link">
+                                    <div>Thêm mới Khuyến mãi</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="menu-item">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-receipt"></i>
+                            <div>Đơn hàng</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="list-order.html" class="menu-link">
+                                    <div>Danh sách Đơn hàng</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="add-order.html" class="menu-link">
+                                    <div>Thêm mới Đơn hàng</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Hệ Thống</span>
+                    </li>
+                    <li class="menu-item">
+                        <a href="auth-login-basic.html" class="menu-link" onclick="localStorage.clear();">
+                            <i class="menu-icon tf-icons bx bx-power-off text-danger"></i>
+                            <div class="text-danger">Đăng Xuất</div>
+                        </a>
                     </li>
                 </ul>
             </aside>
@@ -133,7 +236,10 @@
                                     <option value="Hoàn thành">Hoàn thành</option>
                                     <option value="Đã giao/Đã thanh toán">Đã giao/Đã thanh toán</option>
                                 </select>
-
+                                <div class="input-group input-group-merge ms-md-2" style="width: 250px;">
+                                    <span class="input-group-text"><i class="bx bx-search"></i></span>
+                                    <input type="text" id="searchOrderInput" class="form-control" placeholder="Tìm mã đơn, tên khách..." onkeyup="executeCombinedFilter()" />
+                                </div>
                                 <a href="add-order.html" class="btn btn-primary ms-md-2"><i class="bx bx-plus me-1"></i>Tạo Đơn Mới</a>
                             </div>
 
@@ -184,11 +290,19 @@
                         <div class="col"><label class="form-label fw-semibold">Ngày Tạo Đơn</label><input type="text" id="modalNgayDat" class="form-control" readonly /></div>
                     </div>
 
-                    <div id="modalCustomSection" style="display: none; border-top: 2px dashed #ff9f43;" class="pt-3 mt-3">
-                        <h6 class="text-warning fw-bold mb-3"><i class="bx bx-paint-roll me-1"></i> YÊU CẦU ĐẶT BÁNH CUSTOM</h6>
+                    <div id="modalCustomSection" style="display: none;">
+                        <hr class="my-4 border-warning border-dashed">
+                        <h6 class="fw-bold text-warning mb-3"><i class="bx bx-paint-roll me-1"></i> YÊU CẦU ĐẶT BÁNH CUSTOM</h6>
+
+                        <div class="mb-3 p-2 bg-label-success rounded border border-success">
+                            <label class="form-label fw-bold text-success mb-1">💰 BÁO GIÁ BÁNH CUSTOM</label>
+                            <input type="text" class="form-control text-success fw-bold border-0 bg-transparent px-0" id="modalBaoGiaCustom" readonly value="0 đ" style="font-size: 1.1rem;" />
+                        </div>
+
                         <div class="mb-3">
-                            <label class="form-label fw-semibold text-warning">Hình Ảnh Mẫu Khách Gửi</label>
-                            <div id="modalCustomImgContainer" class="text-center bg-light p-2 rounded border" style="min-height: 120px; display: flex; align-items: center; justify-content: center;"></div>
+                            <label class="form-label text-warning text-uppercase" style="font-size: 0.75rem;">Hình Ảnh Mẫu Khách Gửi</label>
+                            <div id="modalCustomImgContainer" class="text-center p-2 border rounded bg-white">
+                            </div>
                         </div>
                         <div class="mb-3"><label class="form-label fw-semibold">Loại Yêu Cầu / Tên Bánh</label><input type="text" id="modalLoaiYeuCau" class="form-control" readonly /></div>
                         <div class="row g-2 mb-3">
@@ -208,6 +322,7 @@
     <script src="../assets/vendor/js/bootstrap.js"></script>
     <script src="../assets/vendor/js/menu.js"></script>
     <script src="../assets/js/main.js"></script>
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
     <script src="../assets/js/order-grid.js"></script>
 </body>
 </html>

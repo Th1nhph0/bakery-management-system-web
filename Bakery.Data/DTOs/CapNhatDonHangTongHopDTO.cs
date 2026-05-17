@@ -4,7 +4,7 @@ using System.Text;
 
 public class CapNhatDonHangTongHopDTO
 {
-    public int Khach_Hang_ID { get; set; }
+    public int? Khach_Hang_ID { get; set; }
     public int? Khuyen_Mai_ID { get; set; }
     public string Ten_Nguoi_Nhan { get; set; } = null!;
     public string SDT_Nguoi_Nhan { get; set; } = null!;
@@ -19,6 +19,10 @@ public class CapNhatDonHangTongHopDTO
     public string? GhiChu { get; set; }
     public DateTime? NgayLayHang { get; set; }
     public string? HinhAnh { get; set; }
+
+    public decimal? TongTienCustom { get; set; }
+
+    public string? TenNhanVienCapNhat { get; set; }
 }
 
 public class ChiTietGioHangGiaoDien

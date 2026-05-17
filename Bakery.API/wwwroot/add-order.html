@@ -11,6 +11,10 @@
     <link rel="stylesheet" href="../assets/css/demo.css" />
     <script src="../assets/vendor/js/helpers.js"></script>
     <script src="../assets/js/config.js"></script>
+    <link rel="stylesheet" href="../assets/css/demo.css" />
+    <script src="../assets/vendor/js/helpers.js"></script>
+    <script src="../assets/js/config.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 </head>
 <body>
     <div class="layout-wrapper layout-content-navbar">
@@ -18,16 +22,119 @@
             <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
                 <div class="app-brand demo"><a href="index.html" class="app-brand-link"><span class="app-brand-text demo menu-text fw-bolder ms-2">BAKERY</span></a></div>
                 <ul class="menu-inner py-1">
-                    <li class="menu-item"><a href="index.html" class="menu-link"><i class="menu-icon tf-icons bx bx-home-circle"></i><div>Tổng Quan</div></a></li>
-                    <li class="menu-header small text-uppercase"><span class="menu-header-text">Quản Lý Cửa Hàng</span></li>
-                    <li class="menu-item"><a href="list-employee.html" class="menu-link"><i class="menu-icon tf-icons bx bx-group"></i><div>Nhân sự</div></a></li>
-                    <li class="menu-item"><a href="list-product.html" class="menu-link"><i class="menu-icon tf-icons bx bx-cake"></i><div>Kho Sản phẩm</div></a></li>
-                    <li class="menu-item"><a href="list-customer.html" class="menu-link"><i class="menu-icon tf-icons bx bx-user-pin"></i><div>Khách hàng</div></a></li>
-                    <li class="menu-item active open">
-                        <a href="javascript:void(0);" class="menu-link menu-toggle"><i class="menu-icon tf-icons bx bx-receipt"></i><div>Đơn hàng</div></a>
+                    <li class="menu-item">
+                        <a href="index.html" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-home-circle"></i>
+                            <div>Tổng Quan</div>
+                        </a>
+                    </li>
+
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Quản Lý Cửa Hàng</span>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-group"></i>
+                            <div>Nhân sự</div>
+                        </a>
                         <ul class="menu-sub">
-                            <li class="menu-item active"><a href="list-order.html" class="menu-link"><div>Danh sách Đơn hàng</div></a></li>
+                            <li class="menu-item">
+                                <a href="list-employee.html" class="menu-link">
+                                    <div>Danh sách Nhân viên</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="add-employee.html" class="menu-link">
+                                    <div>Thêm/Cập nhật Hồ sơ</div>
+                                </a>
+                            </li>
                         </ul>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-cake"></i>
+                            <div>Kho Sản phẩm</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="list-product.html" class="menu-link">
+                                    <div>Danh sách Sản phẩm</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="add-product.html" class="menu-link">
+                                    <div>Thêm/Cập nhật Sản phẩm</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-user-pin"></i>
+                            <div>Khách hàng</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="list-customer.html" class="menu-link">
+                                    <div>Danh sách Khách hàng</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="add-customer.html" class="menu-link">
+                                    <div>Thêm mới Khách hàng</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-gift"></i>
+                            <div>Khuyến mãi</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="list-khuyenMai.html" class="menu-link">
+                                    <div>Danh sách Khuyến mãi</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="add-khuyenMai.html" class="menu-link">
+                                    <div>Thêm mới Khuyến mãi</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="menu-item">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-receipt"></i>
+                            <div>Đơn hàng</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item">
+                                <a href="list-order.html" class="menu-link">
+                                    <div>Danh sách Đơn hàng</div>
+                                </a>
+                            </li>
+                            <li class="menu-item">
+                                <a href="add-order.html" class="menu-link">
+                                    <div>Thêm mới Đơn hàng</div>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="menu-header small text-uppercase">
+                        <span class="menu-header-text">Hệ Thống</span>
+                    </li>
+                    <li class="menu-item">
+                        <a href="auth-login-basic.html" class="menu-link" onclick="localStorage.clear();">
+                            <i class="menu-icon tf-icons bx bx-power-off text-danger"></i>
+                            <div class="text-danger">Đăng Xuất</div>
+                        </a>
                     </li>
                 </ul>
             </aside>
@@ -42,7 +149,7 @@
                                     <div class="row mb-3">
                                         <div class="col-md-6">
                                             <label class="form-label" for="selectKhachHang">Tài Khoản Khách Hàng (Hệ thống)</label>
-                                            <select class="form-select" id="selectKhachHang" required>
+                                            <select class="form-select" id="selectKhachHang">
                                                 <option value="">-- Chọn khách hàng đặt --</option>
                                             </select>
                                         </div>
@@ -66,7 +173,7 @@
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="diaChiGiao">Địa Chỉ Giao Hàng</label>
-                                        <input type="text" class="form-control" id="diaChiGiao" placeholder="Số nhà, Tên đường, Quận..." required />
+                                        <input type="text" class="form-control" id="diaChiGiao" placeholder="Số nhà, Tên đường, Quận..." required/>
                                     </div>
 
                                     <div class="card border p-3 bg-light mb-4">
@@ -90,10 +197,10 @@
                                         <div class="table-responsive mt-3 border rounded bg-white">
                                             <table class="table table-sm table-hover mb-0">
                                                 <thead class="table-light">
-                                                    <tr><th>Tên Bánh</th><th class="text-center">Số lượng</th><th>Thao Tác</th></tr>
+                                                    <tr><th>Tên Sản phẩm</th><th class="text-center">Số lượng</th><th>Thao Tác</th></tr>
                                                 </thead>
                                                 <tbody id="cartTableBody">
-                                                    <tr><td colspan="3" class="text-center text-muted py-2">Chưa có món nào trong giỏ hàng</td></tr>
+                                                    <tr><td colspan="3" class="text-center text-muted py-2">Chưa có sản phẩm nào trong giỏ hàng</td></tr>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -109,6 +216,12 @@
 
                                     <div id="formCustomOrderFields" style="display: none;" class="card border p-3 bg-label-warning mb-4">
                                         <h6 class="fw-bold text-warning mb-3"><i class="bx bx-paint-roll me-1"></i> THÔNG TIN TIẾN ĐỘ THIẾT KẾ BÁNH CUSTOM</h6>
+
+                                        <div class="mb-3 p-2 bg-white rounded border border-success">
+                                            <label class="form-label fw-bold text-success" for="customBaoGia"><i class="bx bx-dollar-circle"></i> BÁO GIÁ ĐƠN BÁNH (VNĐ)</label>
+                                            <input type="number" class="form-control fw-bold text-success" id="customBaoGia" placeholder="Nhập giá tiền báo cho khách..." />
+                                        </div>
+
                                         <div class="mb-3">
                                             <label class="form-label" for="customLoaiYeuCau">Loại Yêu Cầu / Tên Bánh Đặt</label>
                                             <input type="text" class="form-control" id="customLoaiYeuCau" placeholder="Ví dụ: Bánh sinh nhật Elsa tầng..." />
@@ -155,6 +268,8 @@
         </div>
     </div>
     <script src="../assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <script src="../assets/vendor/js/bootstrap.js"></script>
     <script src="../assets/vendor/js/menu.js"></script>
     <script src="../assets/js/main.js"></script>
