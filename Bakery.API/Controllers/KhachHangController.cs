@@ -35,7 +35,7 @@ namespace Bakery.API.Controllers
         }
 
         [HttpPost("TaoKhachHangMoi")]
-        public async Task<IActionResult> Create([FromBody] KhachHangCreateDTO dto)
+        public async Task<IActionResult> Create([FromBody] KhachHangDTO dto)
         {
             if (!ModelState.IsValid)
             {
@@ -128,5 +128,29 @@ namespace Bakery.API.Controllers
 
             return Ok(lichSu);
         }
+
+        [HttpDelete("XoaKhachHang/{id}")]
+        public async Task<IActionResult> XoaKhachHang(int id)
+        {
+            try
+            {
+                var ketQua = await _service.XoaKhachHangAsync(id);
+
+                if (ketQua == "OK")
+                {
+                    return Ok(new { message = "Xóa dữ liệu khách hàng thành công!" });
+                }
+                else
+                {
+                    // Trả về lỗi 400 Bad Request kèm câu thông báo chặn ràng buộc
+                    return BadRequest(new { message = ketQua });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi Server: " + ex.Message });
+            }
+        }
     }
+
 }

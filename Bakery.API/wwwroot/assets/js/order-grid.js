@@ -52,9 +52,9 @@ function renderOrderGrid(orders) {
         let xmlBtnHtml = '';
         if (trangThaiHienTai !== "Chờ xử lý") {
             xmlBtnHtml = `
-                <a href="${API_URL}/api/DonHang/XuatHoaDonXMLDonHang/${id}" target="_blank" class="btn btn-xs btn-outline-secondary w-100 mt-2">
-                    <i class="bx bx-file-blank me-1"></i> Xuất Hóa Đơn XML
-                </a>`;
+        <a href="${API_URL}/api/DonHang/XuatHoaDonPDFDonHang/${id}" target="_blank" class="btn btn-xs btn-outline-primary w-100 mt-2 fw-bold">
+            <i class="bx bx-printer me-1"></i> 🖨️ Xuất Hóa Đơn / PDF
+        </a>`;
         }
 
         let statusHtml = '';
@@ -195,6 +195,7 @@ async function nextStepStatus(donHangId, trangThaiMoi) {
     } catch (error) { console.error(error); }
 }
 
+// Thay thế toàn bộ hàm showOrderDetails cũ trong file order-grid.js bằng đoạn này:
 async function showOrderDetails(donHangId, laCustom) {
     const dh = globalOrders.find(o => (o.donHangId === donHangId || o.DonHangId === donHangId));
     if (!dh) return;
@@ -213,7 +214,9 @@ async function showOrderDetails(donHangId, laCustom) {
 
     let tongTienGioHang = 0;
     let itemsHtml = '';
+    let customRowHtml = ''; // Tạo biến hứng hàng Custom tách biệt
 
+    // 1. TẢI CÁC MÓN BÁNH TIÊU CHUẨN ĐI KÈM (NẾU CÓ)
     try {
         const resItems = await fetch(`${API_URL}/api/DonHang/LayChiTietSanPhams/${donHangId}`);
         if (resItems.ok) {
@@ -241,7 +244,7 @@ async function showOrderDetails(donHangId, laCustom) {
         }
     } catch (error) { console.error(error); }
 
-    // 🎯 ĐÃ VÁ LỖI: Thuật toán tính ngược giá tiền bánh Custom dựa vào tổng đơn chính
+    // 2. TẢI THÔNG TIN ĐƠN HÀNG CUSTOM (NẾU LÀ ĐƠN CUSTOM)
     if (laCustom) {
         if (customSection) customSection.style.display = "block";
         try {
@@ -253,12 +256,14 @@ async function showOrderDetails(donHangId, laCustom) {
 
                 if (checkCustom && customData) {
                     const loaiYeuCau = customData.loaiYeuCau || customData.LoaiYeuCau || customData.loai_yeu_cau || 'Bánh đặt theo yêu cầu';
-                    const kichThuoc = customData.kichThuocSoluong || customData.KichThuocSoluong || customData.kich_thuoc_soluong || 'Chưa rõ quy cách';
-                    const mauSac = customData.mauSacChuDao || customData.MauSacChuDao || customData.mau_sac_chu_dao || 'Theo mẫu gửi';
-                    const ghiChu = customData.ghiChu || customData.GhiChu || customData.ghi_chu || 'Không có';
-                    const ngayLay = customData.ngayLayHang || customData.NgayLayHang || customData.ngay_lay_hang;
-                    const customImgUrl = customData.HinhAnh || customData.hinhAnh || customData.HinhANh || customData.hinhANh;
 
+                    // 🔥 ĐÃ VÁ LỖI CHÍNH TẢ: Chuyển hết thành kichThuocSoLuong (Chữ L viết HOA) để map chuẩn với API C#
+                    const kichThuoc = customData.kichThuocSoLuong || customData.KichThuocSoLuong || customData.kichThuocSoluong || customData.KichThuocSoluong || 'Chưa rõ quy cách';
+
+                    const mauSac = customData.mauSacChuDao || customData.MauSacChuDao || 'Theo mẫu gửi';
+                    const ghiChu = customData.ghiChu || customData.GhiChu || 'Không có';
+                    const ngayLay = customData.ngayLayHang || customData.NgayLayHang;
+                    const customImgUrl = customData.hinhAnh || customData.HinhAnh || '';
 
                     let totalDonGoc = dh.tongTien || dh.TongTien || 0;
                     let giamGiaGoc = dh.soTienGiam || dh.SoTienGiam || 0;
@@ -277,38 +282,68 @@ async function showOrderDetails(donHangId, laCustom) {
                     }
 
                     const imgContainer = document.getElementById('modalCustomImgContainer');
-                    let customImgHtml = '';
+                    let imgDisplayUrl = '';
 
-                    if (customImgUrl && customImgUrl !== 'string') {
-                        customImgHtml = customImgUrl;
+                    if (customImgUrl && customImgUrl !== 'string' && customImgUrl.trim() !== '') {
+                        imgDisplayUrl = customImgUrl;
                         if (imgContainer) {
                             imgContainer.innerHTML = `<img src="${customImgUrl}" alt="Ảnh mẫu" class="img-fluid rounded" style="max-height: 180px; object-fit: contain; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">`;
                         }
                     } else {
-                        customImgHtml = '../assets/img/icons/unicons/cc-primary.png';
+                        imgDisplayUrl = '../assets/img/icons/unicons/cc-primary.png';
                         if (imgContainer) { imgContainer.innerHTML = `<span class="text-muted small">Khách không gửi kèm hình ảnh mẫu</span>`; }
                     }
 
-                    const customRowHtml = `
+                    customRowHtml = `
                         <tr class="table-warning" style="background-color: #fff3cd !important;">
-                            <td><img src="${customImgHtml}" width="35" height="35" class="rounded border border-warning" style="object-fit:cover;"></td>
+                            <td><img src="${imgDisplayUrl}" width="35" height="35" class="rounded border border-warning" style="object-fit:cover;"></td>
                             <td><span class="fw-bold text-warning"><i class="bx bx-star bx-tada me-1"></i> [BÁNH THIẾT KẾ] - ${loaiYeuCau}</span></td>
                             <td class="text-center"><span class="badge bg-warning">1</span></td>
                             <td><strong class="text-warning">${new Intl.NumberFormat('vi-VN').format(tienCustom)} đ</strong></td>
                         </tr>`;
-
-                    if (pTableBody) pTableBody.innerHTML = customRowHtml + itemsHtml;
                 }
             }
         } catch (error) { console.error(error); }
     } else {
         if (customSection) customSection.style.display = "none";
-        if (pTableBody) { pTableBody.innerHTML = itemsHtml || `<tr><td colspan="4" class="text-center text-muted py-2">Đơn hàng trống!</td></tr>`; }
     }
+
+    // ========================================================
+    // 🔏 THUẬT TOÁN ĐÓNG GÓI: KẾT HỢP DỮ LIỆU ĐỂ IN RA BẢNG HÓA ĐƠN
+    // ========================================================
+    let finalTableHtml = customRowHtml + itemsHtml;
+
+    // Đọc trực tiếp dữ liệu mã và % giảm gốc từ API trả về
+    let soTienGiamGoc = dh.soTienGiam || dh.SoTienGiam || 0;
+    let tenMaCode = dh.tenMaCode || dh.TenMaCode || '';
+    let phanTramGiamGoc = dh.phanTramGiamGoc || dh.PhanTramGiamGoc || 0;
+
+    // Nếu đơn hàng có tiền giảm lớn hơn 0, in thẳng tên mã và % gốc ra
+    if (soTienGiamGoc > 0) {
+        let textHienThiKM = tenMaCode
+            ? `Áp dụng Mã [ ${tenMaCode} ] (Giảm ${phanTramGiamGoc}%):`
+            : `Áp dụng Khuyến Mãi (Giảm ${phanTramGiamGoc}%):`;
+
+        finalTableHtml += `
+            <tr style="background-color: #e8fadf; border-top: 2px dashed #71dd37;">
+                <td colspan="3" class="text-end align-middle pb-2 pt-2">
+                    <span class="fw-bold text-success"><i class="bx bxs-discount bx-tada me-1"></i> ${textHienThiKM}</span>
+                </td>
+                <td class="pb-2 pt-2">
+                    <strong class="text-success">- ${new Intl.NumberFormat('vi-VN').format(soTienGiamGoc)} đ</strong>
+                </td>
+            </tr>`;
+    }
+
+    // Đổ dữ liệu vào HTML bảng Modal
+    if (pTableBody) {
+        pTableBody.innerHTML = finalTableHtml || `<tr><td colspan="4" class="text-center text-muted py-2">Đơn hàng trống!</td></tr>`;
+    }
+
+    // Mở Modal bung lụa
     const myModal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
     myModal.show();
 }
-
 function executeCombinedFilter() {
     let filtered = [...globalOrders];
     if (currentTypeFilter === "standard") { filtered = filtered.filter(d => d.laDonCustom === false || d.LaDonCustom === false); }

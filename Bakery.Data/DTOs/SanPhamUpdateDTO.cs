@@ -8,22 +8,22 @@ namespace Bakery.Data.DTOs
 {
     public class SanPhamUpdateDTO
     {
-        // include both property names to match different usages in controllers
-        [Required(ErrorMessage = "Tên sản phẩm không được để trống")]
-        [StringLength(100, ErrorMessage = "Tên sản phẩm không được quá 100 ký tự")]
+        [Required(ErrorMessage = "Tên sản phẩm không được để trống!")]
+        [StringLength(200, ErrorMessage = "Tên bánh quá dài!")]
         public string TenSanPham { get; set; }
 
-        [Range(0, double.MaxValue, ErrorMessage = "Giá bán phải lớn hơn hoặc bằng 0")]
+        [Required]
+        [Range(1000, double.MaxValue, ErrorMessage = "Giá bán bánh tối thiểu phải từ 1,000 đ!")]
         public decimal GiaBan { get; set; }
 
-        [Range(0, int.MaxValue, ErrorMessage = "Số lượng tồn phải lớn hơn hoặc bằng 0")]
+        [Required]
+        [Range(0, 10000, ErrorMessage = "Số lượng tồn kho không được âm!")]
         public int SoLuong { get; set; }
 
-        [Required(ErrorMessage = "Phân loại không được để trống")]
+        [Required(ErrorMessage = "Phải chọn phân loại bánh!")]
         public string PhanLoai { get; set; }
 
-        public string? MoTa { get; set; }
-
-        public string? HinhAnh { get; set; } // Cho phép null nếu họ không muốn sửa ảnh cũ
+        public string MoTa { get; set; }
+        public string HinhAnh { get; set; }
     }
 }

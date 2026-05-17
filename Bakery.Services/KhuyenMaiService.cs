@@ -43,7 +43,7 @@ namespace Bakery.Services
             }
 
             // 3. Tính toán tiền giảm
-            decimal soTienDuocGiam = tongTienDonHang * ((decimal)khuyenMai.PhanTramGiam / 100);
+            decimal soTienDuocGiam = tongTienDonHang * ((decimal)(khuyenMai.PhanTramGiam ?? 0) / 100);
             decimal tienSauGiam = tongTienDonHang - soTienDuocGiam;
 
             return new

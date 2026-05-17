@@ -1,11 +1,12 @@
 ﻿using Bakery.API.DTOs;
+using Bakery.Data.DTOs;
 using Bakery.Data.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 // using Bakery.Data.Models; // Mở comment dòng này và sửa theo tên Project của ông
 // using Bakery.API.DTOs;
 
-namespace Bakery.API.Controllers
+namespace Bakery.Data.DTOs
 {
     [Route("api/[controller]")]
     [ApiController]

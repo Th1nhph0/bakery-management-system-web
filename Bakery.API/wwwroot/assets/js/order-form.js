@@ -325,3 +325,60 @@ function clearCustomFields() {
     document.getElementById('customHinhAnh').value = '';
     document.getElementById('customBaoGia').value = '';
 }
+
+// ==========================================
+// 5. HÀM TỰ ĐỘNG UPLOAD ẢNH KHI NGƯỜI DÙNG CHỌN FILE
+// ==========================================
+async function uploadFileTuDong() {
+    const fileInput = document.getElementById('fileInputCustom');
+    const hiddenInput = document.getElementById('customHinhAnh');
+    const statusText = document.getElementById('uploadStatus');
+    const previewContainer = document.getElementById('editPreviewContainer');
+    const previewImg = document.getElementById('customImgPreview');
+
+    // Nếu không chọn file gì thì bỏ qua
+    if (!fileInput.files || fileInput.files.length === 0) return;
+
+    const file = fileInput.files[0];
+
+    // Gói file vào form data để gửi đi
+    const formData = new FormData();
+    formData.append('file', file); // 'file' là tên tham số trùng với IFormFile file trong C#
+
+    statusText.innerText = "⏳ Đang tải ảnh lên server...";
+    statusText.className = "text-warning fw-bold d-block mt-1";
+
+    try {
+        // Gọi API Upload bên DonHangController
+        const response = await fetch(`${API_URL}/api/DonHang/UploadAnhMauCustom`, {
+            method: 'POST',
+            body: formData
+            // Lưu ý: Không set Header 'Content-Type' ở đây, trình duyệt sẽ tự động set boundary cho file
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+
+            // Lấy link ảnh từ API trả về gắn vào ô input ẩn để chuẩn bị bấm Lưu đơn
+            const imgUrl = result.linkAnh || result.LinkAnh;
+            hiddenInput.value = imgUrl;
+
+            statusText.innerText = "✅ Tải ảnh lên thành công!";
+            statusText.className = "text-success fw-bold d-block mt-1";
+
+            // Cập nhật luôn cái khung Preview cho nhân viên thấy ảnh mới vừa đổi
+            if (previewContainer && previewImg) {
+                previewImg.src = imgUrl;
+                previewContainer.style.display = "block";
+                previewContainer.querySelector('small').innerText = "Ảnh mẫu chuẩn bị lưu thay thế:";
+            }
+        } else {
+            statusText.innerText = "❌ Lỗi: Server từ chối file ảnh!";
+            statusText.className = "text-danger fw-bold d-block mt-1";
+        }
+    } catch (error) {
+        console.error("Lỗi upload:", error);
+        statusText.innerText = "❌ Mất kết nối đến Server tải ảnh!";
+        statusText.className = "text-danger fw-bold d-block mt-1";
+    }
+}

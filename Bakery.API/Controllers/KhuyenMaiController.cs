@@ -112,7 +112,7 @@ namespace Bakery.API.Controllers
 
         // 6. TÍNH TOÁN TIỀN GIẢM (Giữ nguyên gốc của ông)
         [HttpGet("KiemTraTinhToanKhuyenMai")]
-        public async Task<IActionResult> KiemTraMaGiamGia([FromQuery] string tenCode, [FromQuery] decimal tongTien)
+        public async Task<IActionResult> KiemTraVaTinhTienGiam([FromQuery] string tenCode, [FromQuery] decimal tongTien)
         {
             try
             {
