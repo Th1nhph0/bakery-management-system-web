@@ -1,5 +1,6 @@
-﻿const API_URL = "https://localhost:7122";
-
+﻿const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "https://localhost:7122"
+    : window.location.origin;
 // 1. HÀM LOGIN
 async function handleLogin(event) {
     event.preventDefault();

@@ -1,4 +1,4 @@
-﻿const API_URL = "https://localhost:7122";
+﻿const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
 
 // 1. HÀM ĐỔ DANH SÁCH KHÁCH HÀNG RA BẢNG
 async function loadCustomers() {

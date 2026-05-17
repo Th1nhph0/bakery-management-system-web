@@ -1,4 +1,6 @@
-﻿const API_URL = "https://localhost:7122";
+﻿const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "https://localhost:7122"
+    : window.location.origin;
 let gioHangTam = [];
 let isCustomOrder = false; // Biến cờ kiểm soát trạng thái gửi đi toàn cục
 
