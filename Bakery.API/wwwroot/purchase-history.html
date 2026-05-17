@@ -207,16 +207,19 @@
                     const trangThai = dh.trạngThái || dh.TrangThai || 'Đang xử lý';
 
                     tableBody.innerHTML += `
-                            <tr>
-                                <td><strong>#DH${idDon}</strong></td>
-                                <td>${formatNgay}</td>
-                                <td><strong class="text-success">${formatTien}</strong></td>
-                                <td><span class="badge bg-label-success">${trangThai}</span></td>
-                            </tr>`;
+                                <tr>
+                                    <td><strong>#DH${idDon}</strong></td>
+                                    <td>${formatNgay}</td>
+                                    <td><strong class="text-success">${formatTien}</strong></td>
+                                    <td><span class="badge bg-label-success">${trangThai}</span></td>
+                                </tr>`;
                 });
             } catch (error) { console.error("Lỗi load lịch sử:", error); }
         });
     </script>
     <script src="../assets/js/customer.js"></script>
+    <script src="../assets/js/api-config.js"></script>
+
+
 </body>
 </html>

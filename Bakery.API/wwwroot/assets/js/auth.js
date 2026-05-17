@@ -1,7 +1,7 @@
-﻿const API_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-    ? "https://localhost:7122"
-    : window.location.origin;
-// 1. HÀM LOGIN
+﻿
+// ==========================================
+// 1. HÀM ĐĂNG NHẬP (LOGIN) - BẢN SMART SCANNER CHỐNG LỆCH DTO BACKEND
+// ==========================================
 async function handleLogin(event) {
     event.preventDefault();
     const email = document.getElementById('email').value;
@@ -15,33 +15,58 @@ async function handleLogin(event) {
         if (response.ok) {
             const data = await response.json();
 
-            // Xóa sạch bộ nhớ cũ trước khi lưu người mới
+            // Xóa sạch bộ nhớ cũ trước khi lưu người mới để tránh rác session
             localStorage.clear();
 
-            // Bắt mọi thể loại tên biến C# có thể trả về
-            localStorage.setItem('userRole', data.role || data.Role || data.chucVu || data.chuc_Vu);
-            localStorage.setItem('userId', data.id || data.Id || data.nhanVienId || data.nhan_Vien_ID);
-            localStorage.setItem('userName', data.ten || data.Ten || data.tenNhanVien);
+            // 🔍 THUẬT TOÁN QUÈT SÂU ĐỆ QUY: Tự động dò tìm từ khóa xuyên thấu object lồng nhau của C#
+            function findValueSmart(obj, keywords) {
+                if (!obj || typeof obj !== 'object') return null;
+                // Tầng 1: Tìm ngay ở tầng gốc
+                for (let key in obj) {
+                    if (keywords.some(kw => key.toLowerCase().includes(kw))) {
+                        if (typeof obj[key] !== 'object') return obj[key];
+                    }
+                }
+                // Tầng 2: Nếu không thấy, đệ quy quét sâu vào các object con bên trong
+                for (let key in obj) {
+                    if (typeof obj[key] === 'object') {
+                        let found = findValueSmart(obj[key], keywords);
+                        if (found) return found;
+                    }
+                }
+                return null;
+            }
+
+            // Tiến hành dò tìm thông minh bất chấp định dạng trả về từ API Login
+            const tenThucTe = findValueSmart(data, ['ten', 'name', 'hoten', 'fullname']) || 'Thành viên mới';
+            const quyenThucTe = findValueSmart(data, ['chucvu', 'chuc_vu', 'role', 'quyen', 'vaitro']) || 'Nhân viên';
+            const idChuanXac = findValueSmart(data, ['nhanvienid', 'userid', 'id']) || '';
+
+            // Lưu trữ chắc chắn vào bộ nhớ trình duyệt
+            localStorage.setItem('userName', tenThucTe);
+            localStorage.setItem('userRole', quyenThucTe);
+            localStorage.setItem('userId', idChuanXac);
+
+            // Bật cờ báo hiệu hiện thông báo chào mừng ngọt ngào ở trang index
+            localStorage.setItem('showWelcome', 'true');
 
             window.location.href = 'index.html';
         } else {
             alert("Sai email hoặc mật khẩu!");
         }
-    } catch (error) { console.error(error); }
+    } catch (error) { console.error("Lỗi đăng nhập:", error); }
 }
 
-// 2. HÀM THÊM / SỬA NHÂN VIÊN
+// ==========================================
+// 2. HÀM THÊM / SỬA HỒ SƠ NHÂN VIÊN
+// ==========================================
 async function handleAddEmployee(event) {
     event.preventDefault();
 
-    // 🔥 SỬA LỖI TẠI ĐÂY: Đưa phần lấy editId lên trên cùng để xài cho toàn bộ hàm!
     const urlParams = new URLSearchParams(window.location.search);
     const editId = urlParams.get('id');
-
-    // Lấy Role từ bộ nhớ để chuẩn bị gửi cho C#
     const currentRole = localStorage.getItem('userRole');
 
-    // Lấy giá trị các ô Pass
     const passTaoMoi = document.getElementById('matKhauTaoMoi') ? document.getElementById('matKhauTaoMoi').value : '';
     const passCu = document.getElementById('matKhauCu') ? document.getElementById('matKhauCu').value : '';
     const passMoi = document.getElementById('matKhauMoi') ? document.getElementById('matKhauMoi').value : '';
@@ -49,36 +74,32 @@ async function handleAddEmployee(event) {
 
     let matKhauGuiDi = "";
 
-    // KIỂM TRA LOGIC MẬT KHẨU
     if (editId) {
-        if (passMoi !== "") { // Có nhu cầu đổi pass
+        if (passMoi !== "") {
             if (passMoi !== passXacNhan) {
                 alert("Mật khẩu mới và Xác nhận mật khẩu không khớp nhau!");
-                return; // Dừng luôn, không cho gọi API
+                return;
             }
             matKhauGuiDi = passMoi;
         }
     } else {
-        matKhauGuiDi = passTaoMoi; // Đang tạo mới
+        matKhauGuiDi = passTaoMoi;
     }
 
-    // Đóng gói gửi đi
     const employeeData = {
         TenNhanVien: document.getElementById('tenNhanVien').value,
         Sdt: document.getElementById('sdtNV').value,
         Email: document.getElementById('emailNV').value,
         ChucVu: document.getElementById('chucVu').value,
-
-        MatKhau: matKhauGuiDi,       // Pass mới (hoặc pass tạo tài khoản)
-        MatKhauCu: passCu,           // Báo cáo pass cũ cho C#
-        RoleNguoiSua: currentRole    // Trình thẻ bài cho C# biết ai đang sửa
+        MatKhau: matKhauGuiDi,
+        MatKhauCu: passCu,
+        RoleNguoiSua: currentRole
     };
 
-    // Xác định phương thức và API
     const method = editId ? 'PUT' : 'POST';
     const apiUrl = editId
-        ? `https://localhost:7122/api/NhanVien/CapNhatNhanVien/${editId}`
-        : `https://localhost:7122/api/NhanVien/ThemNhanVienMoi`;
+        ? `${API_URL}/api/NhanVien/CapNhatNhanVien/${editId}`
+        : `${API_URL}/api/NhanVien/ThemNhanVienMoi`;
 
     try {
         const response = await fetch(apiUrl, {
@@ -92,23 +113,27 @@ async function handleAddEmployee(event) {
             window.location.href = 'list-employee.html';
         } else {
             const errorData = await response.json();
-            alert("Thất bại! " + (errorData.message || "Vui lòng kiểm tra lại dữ liệu."));
+            alert("Thất bại! " + (errorData.message || "Vui lòng kiểm tra lại dữ liệu nhập vào."));
         }
-    } catch (error) {
-        console.error("Lỗi:", error);
-    }
+    } catch (error) { console.error("Lỗi gửi form nhân viên:", error); }
 }
-// 3. HÀM ĐỔ DỮ LIỆU RA BẢNG
+
+// ==========================================
+// 3. HÀM NẠP VÀ ĐỔ DANH SÁCH RA BẢNG TRANG LIST
+// ==========================================
 async function loadEmployees() {
     const currentRole = localStorage.getItem('userRole');
-    const currentUserId = String(localStorage.getItem('userId')); // Ép kiểu chuỗi để so sánh
-    const isBoss = (currentRole === 'Admin' || currentRole === 'Quản trị web' || currentRole === 'Chủ quán' || currentRole === 'ChuQuan');
+    const currentUserId = String(localStorage.getItem('userId'));
 
-    // (Tui đã tháo cái lệnh đá văng về index.html ra để nhân viên vào được bảng)
+    // Chuẩn hóa chống lệch chữ HOA / thường từ SQL Server
+    const roleLower = currentRole ? currentRole.toLowerCase().trim() : '';
+    const isBoss = roleLower === 'admin' || roleLower === 'chủ quán' || roleLower === 'chuquan' || roleLower === 'quản trị web';
+
     const btnThem = document.getElementById('btnThemNhanVien');
     if (btnThem && isBoss) {
-        btnThem.style.display = 'inline-block'; // Nếu là sếp thì cho hiện nút lên công khai
+        btnThem.style.display = 'inline-block';
     }
+
     const tableBody = document.getElementById('employeeTableBody');
     if (!tableBody) return;
 
@@ -121,28 +146,28 @@ async function loadEmployees() {
             const tenCotId = Object.keys(nv).find(key => key.toLowerCase().includes('id'));
             const idChuẩn = String(tenCotId ? nv[tenCotId] : '');
 
-            // 🔥 TUYỆT CHIÊU HIỂN THỊ NÚT BẤM THEO QUYỀN
             let actionButtons = '';
 
+            // 🛡️ PHÂN QUYỀN GIAO DIỆN NÚT BẤM TUYỆT ĐỐI
             if (isBoss) {
-                // Sếp thì được thấy nút Sửa và Xóa của TẤT CẢ mọi người
+                // Nếu là CẤP QUẢN LÝ (Admin/Chủ Quán): Hiện đầy đủ cả SỬA và XÓA cho tất cả mọi người!
                 actionButtons = `
-                    <button class="btn btn-sm btn-icon btn-outline-warning" onclick="editEmp(${idChuẩn})">
+                    <button class="btn btn-sm btn-icon btn-outline-warning" onclick="editEmp(${idChuẩn})" title="Sửa hồ sơ">
                         <i class="bx bx-edit"></i>
                     </button>
-                    <button class="btn btn-sm btn-icon btn-outline-danger" onclick="deleteEmp(${idChuẩn})">
+                    <button class="btn btn-sm btn-icon btn-outline-danger ms-1" onclick="deleteEmp(${idChuẩn})" title="Xóa nhân sự">
                         <i class="bx bx-trash"></i>
                     </button>
                 `;
-            } else if (currentUserId === idChuẩn) {
-                // Nhân viên thường thì CHỈ THẤY NÚT SỬA ở đúng dòng tên của chính mình
+            } else if (currentUserId === idChuẩn && currentUserId !== "") {
+                // Nếu là NHÂN VIÊN THƯỜNG: Chỉ được thấy duy nhất nút Sửa ở dòng của chính mình để tự cập nhật thông tin
                 actionButtons = `
-                    <button class="btn btn-sm btn-icon btn-outline-warning" onclick="editEmp(${idChuẩn})">
+                    <button class="btn btn-sm btn-icon btn-outline-warning" onclick="editEmp(${idChuẩn})" title="Sửa thông tin cá nhân">
                         <i class="bx bx-edit"></i>
                     </button>
                 `;
             } else {
-                // Dòng của người khác thì khóa lại, không cho bấm
+                // Các dòng của đồng nghiệp khác: Khóa cứng hiển thị Không có quyền
                 actionButtons = `<span class="badge bg-label-secondary">Không có quyền</span>`;
             }
 
@@ -153,120 +178,117 @@ async function loadEmployees() {
                     <td>${nv.email}</td>
                     <td>${nv.sdt || '---'}</td>
                     <td><span class="badge bg-label-primary">${nv.chucVu || nv.chuc_Vu}</span></td>
-                    
                     <td>${actionButtons}</td> 
                 </tr>`;
         });
-    } catch (error) { console.error("Lỗi load bảng:", error); }
+    } catch (error) { console.error("Lỗi nạp bảng nhân sự:", error); }
 }
-// 4. HÀM XÓA
+
+// ==========================================
+// 4. HÀM XÓA NHÂN VIÊN
+// ==========================================
 async function deleteEmp(id) {
-    if (confirm("Chắc chắn muốn xóa nhân viên này?")) {
+    if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn nhân viên này khỏi hệ thống?")) {
         try {
             const response = await fetch(`${API_URL}/api/NhanVien/XoaNhanVien/${id}`, { method: 'DELETE' });
-
             if (response.ok) {
-                alert("Xóa thành công!");
+                alert("Xóa nhân viên thành công!");
                 loadEmployees();
             } else {
                 const errorData = await response.json();
-                alert(errorData.message || "Không thể xóa nhân viên này!");
+                alert(errorData.message || "Không thể thực hiện xóa nhân viên này!");
             }
         } catch (error) { console.error(error); }
     }
 }
 
-// 5. HÀM CHUYỂN TRANG SỬA
+// ==========================================
+// 5. ĐIỀU HƯỚNG FORM SỬA
+// ==========================================
 function editEmp(id) {
     window.location.href = `add-employee.html?id=${id}`;
 }
 
-
-/// ==========================================
-// 6. GỘP TOÀN BỘ SỰ KIỆN VÀO 1 CHỖ DUY NHẤT
+// ==========================================
+// 6. KHỞI CHẠY HỆ THỐNG SỰ KIỆN DOM
 // ==========================================
 document.addEventListener('DOMContentLoaded', async () => {
-    // A. Gắn sự kiện cho Form Login & Form Thêm
     const loginForm = document.getElementById('formAuthentication');
     if (loginForm) loginForm.addEventListener('submit', handleLogin);
 
     const empForm = document.getElementById('formAddEmployee');
     if (empForm) empForm.addEventListener('submit', handleAddEmployee);
 
-    // B. Gọi hàm nạp bảng (nếu đang ở trang list-employee)
     if (document.getElementById('employeeTableBody')) {
         loadEmployees();
     }
 
-    // C. Logic Form Cập Nhật / Thêm Mới
     const urlParams = new URLSearchParams(window.location.search);
     const editId = urlParams.get('id');
 
-    // Tìm sẵn các thẻ HTML cần đổi chữ (chỉ tìm nếu đang ở trang form)
-    const formTitle = document.querySelector('.card-header');
+    const formTitle = document.querySelector('.card-header h5');
     const submitBtn = document.querySelector('button[type="submit"]');
-    const passLabel = document.querySelector('label[for="matKhauNV"]');
 
     if (editId) {
-        // -----------------------------------------------------
-        // KỊCH BẢN 1: ĐANG Ở CHẾ ĐỘ "SỬA" (Có ID trên link)
-        // -----------------------------------------------------
         const currentRole = localStorage.getItem('userRole');
         const currentUserId = String(localStorage.getItem('userId'));
         const targetId = String(editId);
 
-        const isBoss = (currentRole === 'Admin' || currentRole === 'Quản trị web' || currentRole === 'Chủ quán' || currentRole === 'ChuQuan');
+        const roleLower = currentRole ? currentRole.toLowerCase().trim() : '';
+        const isBoss = roleLower === 'admin' || roleLower === 'chủ quán' || roleLower === 'chuquan' || roleLower === 'quản trị web';
 
-        // 1. CHỐNG HACK SỬA CHÉO
         if (!isBoss && currentUserId !== targetId) {
-            alert("Tính hack hệ thống hả ông thần? Chỉ được sửa hồ sơ của mình thôi!");
+            alert("⚠️ Cảnh báo bảo mật: Bạn không có quyền chỉnh sửa hồ sơ tài khoản của người khác!");
             window.location.href = 'index.html';
             return;
         }
 
-        // 2. KHÓA CHỨC VỤ NẾU LÀ NHÂN VIÊN
+        const khuVucCV = document.getElementById('khuVucChucVu');
+        const chucVuInput = document.getElementById('chucVu');
         if (!isBoss) {
-            const chucVuInput = document.getElementById('chucVu');
             if (chucVuInput) chucVuInput.disabled = true;
-
-            const khuVuc = document.getElementById('khuVucChucVu');
-            if (khuVuc) khuVuc.style.display = 'none';
+            if (khuVucCV) khuVucCV.style.display = 'none';
+        } else {
+            if (chucVuInput) chucVuInput.disabled = false;
+            if (khuVucCV) khuVucCV.style.display = 'block';
         }
 
-        // 3. ĐỔI GIAO DIỆN SANG CẬP NHẬT
         if (formTitle) formTitle.innerText = "Cập Nhật Thông Tin Nhân Viên";
-        if (passLabel) passLabel.innerText = "MẬT KHẨU (BỎ TRỐNG NẾU KHÔNG MUỐN ĐỔI)";
+
+        const khuVucPassMoi = document.getElementById('khuVucPassTaoMoi');
+        if (khuVucPassMoi) khuVucPassMoi.style.display = 'none';
+
+        const khuVucDoiP = document.getElementById('khuVucDoiPass');
+        if (khuVucDoiP) khuVucDoiP.style.display = 'block';
+
         if (submitBtn) {
             submitBtn.innerText = "Lưu Cập Nhật";
             submitBtn.classList.replace('btn-primary', 'btn-warning');
         }
 
-        // 4. API LẤY DỮ LIỆU CŨ ĐỔ VÀO FORM
         try {
-            const response = await fetch(`https://localhost:7122/api/NhanVien/LayNhanVien/${editId}`);
+            const response = await fetch(`${API_URL}/api/NhanVien/LayNhanVien/${editId}`);
             if (response.ok) {
                 const data = await response.json();
-
                 document.getElementById('tenNhanVien').value = data.tenNhanVien || data.ten_Nhan_Vien;
                 document.getElementById('sdtNV').value = data.sdt;
                 document.getElementById('emailNV').value = data.email;
-
-                const chucVuInput = document.getElementById('chucVu');
                 if (chucVuInput) chucVuInput.value = data.chucVu || data.chuc_Vu;
             }
-        } catch (error) {
-            console.error("Lỗi lấy thông tin sửa:", error);
-        }
+        } catch (error) { console.error("Lỗi lấy thông tin sửa:", error); }
 
     } else if (empForm) {
-        // -----------------------------------------------------
-        // KỊCH BẢN 2: ĐANG Ở CHẾ ĐỘ "THÊM MỚI" (Không có ID)
-        // -----------------------------------------------------
         if (formTitle) formTitle.innerText = "Tạo Hồ Sơ Nhân Viên Mới";
-        if (passLabel) passLabel.innerText = "MẬT KHẨU (BẮT BUỘC)";
+
+        const khuVucPassMoi = document.getElementById('khuVucPassTaoMoi');
+        if (khuVucPassMoi) khuVucPassMoi.style.display = 'block';
+
+        const khuVucDoiP = document.getElementById('khuVucDoiPass');
+        if (khuVucDoiP) khuVucDoiP.style.display = 'none';
+
         if (submitBtn) {
             submitBtn.innerText = "Tạo Tài Khoản";
-            submitBtn.classList.replace('btn-warning', 'btn-primary'); // Đảm bảo nút màu xanh
+            submitBtn.classList.replace('btn-warning', 'btn-primary');
         }
     }
 });

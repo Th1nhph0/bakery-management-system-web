@@ -1,167 +1,148 @@
 /**
- * Main
+ * Main JS - Bakery Management System
  */
-
 'use strict';
 
 let menu, animate;
 
 (function () {
-
+    // 🛠️ ĐỒNG BỘ TOÀN DIỆN: CHỐNG MẤT ID - TỰ ĐỘNG KHỚP HỒ SƠ CÁ NHÂN
     document.addEventListener('DOMContentLoaded', () => {
-        const currentRole = localStorage.getItem('userRole');
-        const currentName = localStorage.getItem('userName'); // Lấy tên người dùng ra
+        const currentRole = localStorage.getItem('userRole') || localStorage.getItem('role') || localStorage.getItem('userrole');
+        const currentName = localStorage.getItem('userName') || localStorage.getItem('username') || localStorage.getItem('fullName');
+        const currentUserId = localStorage.getItem('userId') || localStorage.getItem('id');
 
-        // Nếu chưa đăng nhập mà đòi vô Dashboard -> Đá văng ra trang Login
+        // 1. Kiểm tra an ninh: Nếu chưa đăng nhập -> Đá văng ra trang Login liền
         if (!currentRole && !window.location.href.includes('auth-')) {
             window.location.href = 'auth-login-basic.html';
+            return;
         }
 
-        // ===== ĐOẠN CODE MỚI THÊM VÀO =====
-        // Kiểm tra xem có cờ báo hiệu vừa đăng nhập thành công không
-        if (localStorage.getItem('showWelcome') === 'true') {
-            // Hiện thông báo ở trang index
-            alert(`Chào mừng ${currentName} đã trở lại hệ thống tiệm bánh!`);
+        // 2. Đổ thông tin họ tên, chức vụ thực tế lên Navbar góc phải
+        const navName = document.getElementById('navUserFullName'); // Sửa navNamo -> navName
+        const navRole = document.getElementById('navUserRole');     // Sửa navRolo -> navRole
 
-            // QUAN TRỌNG: Hiện xong phải xóa ngay cái cờ đó đi. 
-            // Nếu không xóa, cứ mỗi lần ông F5 trang web nó lại hiện thông báo 1 lần!
+        if (navName && currentName) navName.innerText = currentName;
+        if (navRole && currentRole) navRole.innerText = currentRole;
+
+        // 3. 🔥 TỰ ĐỘNG BẮN LINK ID CỦA NGƯỜI ĐANG LOGIN VÀO NÚT CÀI ĐẶT TÀI KHOẢN
+        const accountSettingsLink = document.getElementById('navAccountSettings');
+        if (accountSettingsLink && currentUserId) {
+            accountSettingsLink.href = `add-employee.html?id=${currentUserId}`;
+        }
+
+        // 4. Kiểm tra cờ bật hộp thoại chào mừng khi đăng nhập thành công
+        if (localStorage.getItem('showWelcome') === 'true') {
+            alert(`Chào mừng ${currentName} đã trở lại hệ thống tiệm bánh!`);
             localStorage.removeItem('showWelcome');
         }
-        // ==================================
 
-        // Ẩn menu Thêm Nhân Viên nếu không phải Admin
-        if (currentRole !== 'Admin') {
+        // 🔥 5. PHÂN QUYỀN ĐỒNG BỘ: Cho phép cả Admin lẫn Chủ Quán đều có quyền quản trị (Chống lỗi Hoa/Thường)
+        const roleLower = currentRole ? currentRole.toLowerCase().trim() : '';
+        const isBoss = roleLower === 'admin' || roleLower === 'chủ quán' || roleLower === 'chuquan' || roleLower === 'quản trị web';
+
+        if (!isBoss) {
+            // Nếu KHÔNG PHẢI là sếp (nhân viên thường) -> Ẩn menu Thêm nhân sự đi
             const menuAddEmp = document.getElementById('menu-add-employee');
             if (menuAddEmp) menuAddEmp.style.display = 'none';
         }
     });
-  // Initialize menu
-  //-----------------
 
-  let layoutMenuEl = document.querySelectorAll('#layout-menu');
-  layoutMenuEl.forEach(function (element) {
-    menu = new Menu(element, {
-      orientation: 'vertical',
-      closeChildren: false
+    // Khởi tạo khung cấu trúc Menu Template
+    let layoutMenuEl = document.querySelectorAll('#layout-menu');
+    layoutMenuEl.forEach(function (element) {
+        menu = new Menu(element, {
+            orientation: 'vertical',
+            closeChildren: false
+        });
+        window.Helpers.scrollToActive((animate = false));
+        window.Helpers.mainMenu = menu;
     });
-    // Change parameter to true if you want scroll animation
-    window.Helpers.scrollToActive((animate = false));
-    window.Helpers.mainMenu = menu;
-  });
 
-  // Initialize menu togglers and bind click on each
-  let menuToggler = document.querySelectorAll('.layout-menu-toggle');
-  menuToggler.forEach(item => {
-    item.addEventListener('click', event => {
-      event.preventDefault();
-      window.Helpers.toggleCollapsed();
+    let menuToggler = document.querySelectorAll('.layout-menu-toggle');
+    menuToggler.forEach(item => {
+        item.addEventListener('click', event => {
+            event.preventDefault();
+            window.Helpers.toggleCollapsed();
+        });
     });
-  });
 
-  // Display menu toggle (layout-menu-toggle) on hover with delay
-  let delay = function (elem, callback) {
-    let timeout = null;
-    elem.onmouseenter = function () {
-      // Set timeout to be a timer which will invoke callback after 300ms (not for small screen)
-      if (!Helpers.isSmallScreen()) {
-        timeout = setTimeout(callback, 300);
-      } else {
-        timeout = setTimeout(callback, 0);
-      }
+    let delay = function (elem, callback) {
+        let timeout = null;
+        elem.onmouseenter = function () {
+            if (!Helpers.isSmallScreen()) {
+                timeout = setTimeout(callback, 300);
+            } else {
+                timeout = setTimeout(callback, 0);
+            }
+        };
+        elem.onmouseleave = function () {
+            document.querySelector('.layout-menu-toggle').classList.remove('d-block');
+            clearTimeout(timeout);
+        };
     };
-
-    elem.onmouseleave = function () {
-      // Clear any timers set to timeout
-      document.querySelector('.layout-menu-toggle').classList.remove('d-block');
-      clearTimeout(timeout);
-    };
-  };
-  if (document.getElementById('layout-menu')) {
-    delay(document.getElementById('layout-menu'), function () {
-      // not for small screen
-      if (!Helpers.isSmallScreen()) {
-        document.querySelector('.layout-menu-toggle').classList.add('d-block');
-      }
-    });
-  }
-
-  // Display in main menu when menu scrolls
-  let menuInnerContainer = document.getElementsByClassName('menu-inner'),
-    menuInnerShadow = document.getElementsByClassName('menu-inner-shadow')[0];
-  if (menuInnerContainer.length > 0 && menuInnerShadow) {
-    menuInnerContainer[0].addEventListener('ps-scroll-y', function () {
-      if (this.querySelector('.ps__thumb-y').offsetTop) {
-        menuInnerShadow.style.display = 'block';
-      } else {
-        menuInnerShadow.style.display = 'none';
-      }
-    });
-  }
-
-  // Init helpers & misc
-  // --------------------
-
-  // Init BS Tooltip
-  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-  tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl);
-  });
-
-  // Accordion active class
-  const accordionActiveFunction = function (e) {
-    if (e.type == 'show.bs.collapse' || e.type == 'show.bs.collapse') {
-      e.target.closest('.accordion-item').classList.add('active');
-    } else {
-      e.target.closest('.accordion-item').classList.remove('active');
+    if (document.getElementById('layout-menu')) {
+        delay(document.getElementById('layout-menu'), function () {
+            if (!Helpers.isSmallScreen()) {
+                document.querySelector('.layout-menu-toggle').classList.add('d-block');
+            }
+        });
     }
-  };
 
-  const accordionTriggerList = [].slice.call(document.querySelectorAll('.accordion'));
-  const accordionList = accordionTriggerList.map(function (accordionTriggerEl) {
-    accordionTriggerEl.addEventListener('show.bs.collapse', accordionActiveFunction);
-    accordionTriggerEl.addEventListener('hide.bs.collapse', accordionActiveFunction);
-  });
+    let menuInnerContainer = document.getElementsByClassName('menu-inner'),
+        menuInnerShadow = document.getElementsByClassName('menu-inner-shadow')[0];
+    if (menuInnerContainer.length > 0 && menuInnerShadow) {
+        menuInnerContainer[0].addEventListener('ps-scroll-y', function () {
+            if (this.querySelector('.ps__thumb-y').offsetTop) {
+                menuInnerShadow.style.display = 'block';
+            } else {
+                menuInnerShadow.style.display = 'none';
+            }
+        });
+    }
 
-  // Auto update layout based on screen size
-  window.Helpers.setAutoUpdate(true);
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 
-  // Toggle Password Visibility
-  window.Helpers.initPasswordToggle();
+    const accordionActiveFunction = function (e) {
+        if (e.type == 'show.bs.collapse') {
+            e.target.closest('.accordion-item').classList.add('active');
+        } else {
+            e.target.closest('.accordion-item').classList.remove('active');
+        }
+    };
 
-  // Speech To Text
-  window.Helpers.initSpeechToText();
+    const accordionTriggerList = [].slice.call(document.querySelectorAll('.accordion'));
+    accordionTriggerList.map(function (accordionTriggerEl) {
+        accordionTriggerEl.addEventListener('show.bs.collapse', accordionActiveFunction);
+        accordionTriggerEl.addEventListener('hide.bs.collapse', accordionActiveFunction);
+    });
 
-  // Manage menu expanded/collapsed with templateCustomizer & local storage
-  //------------------------------------------------------------------
+    window.Helpers.setAutoUpdate(true);
+    window.Helpers.initPasswordToggle();
+    window.Helpers.initSpeechToText();
 
-  // If current layout is horizontal OR current window screen is small (overlay menu) than return from here
-  if (window.Helpers.isSmallScreen()) {
-    return;
-  }
-
-  // If current layout is vertical and current window screen is > small
-
-  // Auto update menu collapsed/expanded based on the themeConfig
-  window.Helpers.setCollapsed(true, false);
+    if (window.Helpers.isSmallScreen()) {
+        return;
+    }
+    window.Helpers.setCollapsed(true, false);
 })();
 
-// 🔥 THUẬT TOÁN TÌM KIẾM ĐA NĂNG CHO MỌI BẢNG (GÕ TỚI ĐÂU LỌC TỚI ĐÓ)
+// 🔥 THUẬT TOÁN TÌM KIẾM ĐA NĂNG CHO MỌI TRANG BẢNG (GÕ TỚI ĐÂU LỌC TỚI ĐÓ)
 function searchTable() {
     const input = document.getElementById("searchInput");
     if (!input) return;
 
     const filter = input.value.toLowerCase().trim();
-    // Tìm thẻ <tbody> đầu tiên trong trang (chứa dữ liệu)
     const tbody = document.querySelector("tbody");
     if (!tbody) return;
 
     const rows = tbody.getElementsByTagName("tr");
 
     for (let i = 0; i < rows.length; i++) {
-        // Gom toàn bộ chữ của tất cả các cột trong dòng đó lại
         const rowText = rows[i].innerText.toLowerCase();
-
-        // Nếu chữ gõ vào có nằm trong dòng này -> Hiện lên, ngược lại -> Ẩn đi
         if (rowText.includes(filter)) {
             rows[i].style.display = "";
         } else {
@@ -170,20 +151,15 @@ function searchTable() {
     }
 }
 
+// 🔥 TỰ ĐỘNG HIGHLIGHT COLOR CHO THANH MENU THEO URL TRANG HIỆN TẠI
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. Lấy tên trang hiện tại (VD: 'list-order.html')
     let currentUrl = window.location.pathname.split('/').pop();
     if (currentUrl === '' || currentUrl === '/') currentUrl = 'index.html';
 
-    // 2. Đi dò trong menu xem có cái link nào khớp không
     const menuLinks = document.querySelectorAll('.menu-inner .menu-link');
-
     menuLinks.forEach(link => {
         if (link.getAttribute('href') === currentUrl) {
-            // Đánh dấu thẻ <li> chứa link đó là đang hoạt động
             link.parentElement.classList.add('active');
-
-            // Đánh dấu cái Dropdown cha (nếu có) là đang mở
             const parentMenu = link.closest('.menu-sub');
             if (parentMenu) {
                 parentMenu.parentElement.classList.add('active', 'open');
