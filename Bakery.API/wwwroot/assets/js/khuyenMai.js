@@ -20,6 +20,17 @@ async function loadPromotions() {
             const batDau = new Date(km.ngayBatDau || km.NgayBatDau).toLocaleDateString('vi-VN');
             const ketThuc = new Date(km.ngayKetThuc || km.NgayKetThuc).toLocaleDateString('vi-VN');
 
+            const role = localStorage.getItem('userRole') || '';
+            let actionButtonsHtml = '';
+
+            if (role === 'Admin' || role === 'Chủ quán' || role === 'Quản trị web') {
+                actionButtonsHtml = `
+            <button class="btn btn-sm btn-icon btn-outline-warning" onclick="editPromotion(${idChuẩn})"><i class="bx bx-edit-alt"></i></button>
+            <button class="btn btn-sm btn-icon btn-outline-danger ms-1" onclick="deletePromotion(${idChuẩn})"><i class="bx bx-trash"></i></button>
+        `;
+            } else {
+                actionButtonsHtml = `<span class="badge bg-label-secondary">Không có quyền</span>`;
+            }
             tableBody.innerHTML += `               
                 <tr>
                     <td><strong>KM${idChuẩn}</strong></td>

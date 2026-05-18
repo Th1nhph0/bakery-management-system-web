@@ -23,7 +23,11 @@ namespace Bakery.Data.DTOs
         [Required(ErrorMessage = "Phải chọn phân loại bánh!")]
         public string PhanLoai { get; set; }
 
-        public string MoTa { get; set; }
-        public string HinhAnh { get; set; }
+        public string? MoTa { get; set; }
+
+        public string? HinhAnh { get; set; }
+
+        public string? RoleNguoiSua { get; set; }
+
     }
 }

@@ -26,7 +26,7 @@ async function loadCustomers() {
                     <td>${emailKH}</td>
                     <td>${diaChiKH}</td>
                     <td>
-                        <button class="btn btn-sm btn-icon btn-outline-info me-1" title="Lịch sử mua hàng" onclick="viewHistory(${idChuẩn})">
+                        <button class="btn btn-sm btn-icon btn-outline-info me-1" title="Xem lịch sử" onclick="viewHistory(${idChuẩn})">
                             <i class="bx bx-history"></i>
                         </button>
                         <button class="btn btn-sm btn-icon btn-outline-warning me-1" title="Sửa thông tin" onclick="editCustomer(${idChuẩn})">
@@ -95,8 +95,14 @@ async function deleteCustomer(id) {
 
 // 4. ĐIỀU HƯỚNG TRANG
 function editCustomer(id) { window.location.href = `add-customer.html?id=${id}`; }
-function viewHistory(id) { window.location.href = `purchase-history.html?id=${id}`; }
-
+// Hàm điều hướng chuẩn sang trang lịch sử
+function viewHistory(id) {
+    if (!id || id === 'undefined') {
+        alert("Mã khách hàng không hợp lệ!");
+        return;
+    }
+    window.location.href = `purchase-history.html?id=${id}`;
+}
 // 5. TỰ ĐỘNG ĐỔ DỮ LIỆU CŨ VÀO FORM KHI ĐANG Ở TRANG SỬA
 document.addEventListener('DOMContentLoaded', async () => {
     if (document.getElementById('customerTableBody')) loadCustomers();

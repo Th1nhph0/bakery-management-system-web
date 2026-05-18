@@ -3,73 +3,76 @@ using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 
-// 🔥 THÊM GIAO DIỆN IValidatableObject VÀO ĐÂY
-public class CapNhatDonHangTongHopDTO : IValidatableObject
+
+namespace Bakery.Data.DTOs
 {
-    public int? Khach_Hang_ID { get; set; }
-    public int? Khuyen_Mai_ID { get; set; }
-
-    [Required(ErrorMessage = "Tên người nhận hàng không được để trống!")]
-    [StringLength(100, ErrorMessage = "Tên không quá 100 ký tự!")]
-    public string Ten_Nguoi_Nhan { get; set; } = null!;
-
-    [Required(ErrorMessage = "Số điện thoại không được để trống!")]
-    [RegularExpression(@"^0[0-9]{9}$", ErrorMessage = "Số điện thoại phải bắt đầu bằng số 0 và đủ 10 chữ số.")]
-    public string SDT_Nguoi_Nhan { get; set; } = null!;
-
-    [Required(ErrorMessage = "Địa chỉ giao bánh không được để trống!")]
-    public string Dia_Chi_Giao { get; set; } = null!;
-
-    public List<ChiTietGioHangGiaoDien> ChiTietGioHang { get; set; } = new();
-
-    // Các trường bổ sung nếu là đơn Custom
-    public bool LaDonCustom { get; set; }
-    public string? LoaiYeuCau { get; set; }
-    public string? KichThuocSoluong { get; set; }
-    public string? MauSacChuDao { get; set; }
-    public string? GhiChu { get; set; }
-    public DateTime? NgayLayHang { get; set; }
-    public string? HinhAnh { get; set; }
-
-    public decimal? TongTienCustom { get; set; }
-
-    public string? TenNhanVienCapNhat { get; set; }
-
-    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    public class CapNhatDonHangTongHopDTO : IValidatableObject
     {
-        // 1. Ràng buộc nếu bật công tắc đơn Custom thì KHÔNG ĐƯỢC XÓA TRỐNG các trường quan trọng
-        if (LaDonCustom)
+        public int? Khach_Hang_ID { get; set; }
+        public int? Khuyen_Mai_ID { get; set; }
+
+        [Required(ErrorMessage = "Tên người nhận hàng không được để trống!")]
+        [StringLength(100, ErrorMessage = "Tên không quá 100 ký tự!")]
+        public string Ten_Nguoi_Nhan { get; set; } = null!;
+
+        [Required(ErrorMessage = "Số điện thoại không được để trống!")]
+        [RegularExpression(@"^0[0-9]{9}$", ErrorMessage = "Số điện thoại phải bắt đầu bằng số 0 và đủ 10 chữ số.")]
+        public string SDT_Nguoi_Nhan { get; set; } = null!;
+
+        [Required(ErrorMessage = "Địa chỉ giao bánh không được để trống!")]
+        public string Dia_Chi_Giao { get; set; } = null!;
+
+        public List<ChiTietGioHangGiaoDien> ChiTietGioHang { get; set; } = new();
+
+        // Các trường bổ sung nếu là đơn Custom
+        public bool LaDonCustom { get; set; }
+        public string? LoaiYeuCau { get; set; }
+        public string? KichThuocSoluong { get; set; }
+        public string? MauSacChuDao { get; set; }
+        public string? GhiChu { get; set; }
+        public DateTime? NgayLayHang { get; set; }
+        public string? HinhAnh { get; set; }
+
+        public decimal? TongTienCustom { get; set; }
+
+        public string? TenNhanVienCapNhat { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (string.IsNullOrWhiteSpace(LoaiYeuCau))
-                yield return new ValidationResult("Vui lòng nhập Loại yêu cầu / Tên bánh Custom!", new[] { nameof(LoaiYeuCau) });
+            // 1. Ràng buộc nếu bật công tắc đơn Custom thì KHÔNG ĐƯỢC XÓA TRỐNG các trường quan trọng
+            if (LaDonCustom)
+            {
+                if (string.IsNullOrWhiteSpace(LoaiYeuCau))
+                    yield return new ValidationResult("Vui lòng nhập Loại yêu cầu / Tên bánh Custom!", new[] { nameof(LoaiYeuCau) });
 
-            if (string.IsNullOrWhiteSpace(KichThuocSoluong))
-                yield return new ValidationResult("Kích thước/Quy cách bánh Custom không được để trống!", new[] { nameof(KichThuocSoluong) });
+                if (string.IsNullOrWhiteSpace(KichThuocSoluong))
+                    yield return new ValidationResult("Kích thước/Quy cách bánh Custom không được để trống!", new[] { nameof(KichThuocSoluong) });
 
-            if (TongTienCustom == null || TongTienCustom <= 0)
-                yield return new ValidationResult("Báo giá bánh Custom phải lớn hơn 0đ. Đừng bán lỗ nhé!", new[] { nameof(TongTienCustom) });
+                if (TongTienCustom == null || TongTienCustom <= 0)
+                    yield return new ValidationResult("Báo giá bánh Custom phải lớn hơn 0đ. Đừng bán lỗ nhé!", new[] { nameof(TongTienCustom) });
 
-            if (NgayLayHang == null)
-                yield return new ValidationResult("Phải có ngày hẹn khách lấy bánh Custom!", new[] { nameof(NgayLayHang) });
-            // Ghi chú: Không bắt lỗi ngày lấy hàng trong quá khứ ở bản Update, 
-            // vì nhân viên có thể đang sửa một đơn hàng đã được tạo từ tuần trước.
-        }
+                if (NgayLayHang == null)
+                    yield return new ValidationResult("Phải có ngày hẹn khách lấy bánh Custom!", new[] { nameof(NgayLayHang) });
+                // Ghi chú: Không bắt lỗi ngày lấy hàng trong quá khứ ở bản Update, 
+                // vì nhân viên có thể đang sửa một đơn hàng đã được tạo từ tuần trước.
+            }
 
-        // 2. Ràng buộc nếu KHÔNG là đơn Custom thì Giỏ hàng phải có ít nhất 1 món
-        if (!LaDonCustom && (ChiTietGioHang == null || ChiTietGioHang.Count == 0))
-        {
-            yield return new ValidationResult("Giỏ hàng đang trống! Vui lòng chọn bánh tiêu chuẩn hoặc bật chế độ Bánh Custom.", new[] { nameof(ChiTietGioHang) });
+            // 2. Ràng buộc nếu KHÔNG là đơn Custom thì Giỏ hàng phải có ít nhất 1 món
+            if (!LaDonCustom && (ChiTietGioHang == null || ChiTietGioHang.Count == 0))
+            {
+                yield return new ValidationResult("Giỏ hàng đang trống! Vui lòng chọn bánh tiêu chuẩn hoặc bật chế độ Bánh Custom.", new[] { nameof(ChiTietGioHang) });
+            }
         }
     }
-}
 
-// 📦 LẮP THÊM KIỂM TRA CHO TỪNG MÓN BÁNH TRONG GIỎ HÀNG 
-public class ChiTietGioHangGiaoDien
-{
-    [Required(ErrorMessage = "Mã sản phẩm không được để trống!")]
-    public int SanPham_ID { get; set; }
+    // 📦 LẮP THÊM KIỂM TRA CHO TỪNG MÓN BÁNH TRONG GIỎ HÀNG 
+    public class ChiTietGioHangGiaoDien
+    {
+        [Required(ErrorMessage = "Mã sản phẩm không được để trống!")]
+        public int SanPham_ID { get; set; }
 
-    [Required(ErrorMessage = "Số lượng không được để trống!")]
-    [Range(1, int.MaxValue, ErrorMessage = "Số lượng bánh đặt mua phải từ 1 cái trở lên!")]
-    public int So_Luong { get; set; }
+        [Required(ErrorMessage = "Số lượng không được để trống!")]
+        [Range(1, int.MaxValue, ErrorMessage = "Số lượng bánh đặt mua phải từ 1 cái trở lên!")]
+        public int So_Luong { get; set; }
+    }
 }

@@ -278,7 +278,9 @@
                                         <input type="text" id="searchInput" class="form-control" placeholder="Tìm tên, SĐT, địa chỉ..." onkeyup="searchTable()" />
                                     </div>
 
-                                    <a href="add-employee.html" class="btn btn-primary text-nowrap"><i class="bx bx-plus me-1"></i> Thêm Nhân viên mới</a>
+                                    <a href="add-employee.html" id="btnThemNhanVienMoi" class="btn btn-primary text-nowrap">
+                                        <i class="bx bx-plus me-1"></i> Thêm Nhân viên mới
+                                    </a>
                                 </div>
                             </div>
                             <div class="table-responsive text-nowrap">
@@ -328,22 +330,18 @@
                     <div class="content-backdrop fade"></div>
                 </div>
                 <!-- Content wrapper -->
-              
-
-                  
-                    <!-- Content wrapper -->
-            
+                <!-- Content wrapper -->
                 <!-- / Layout page -->
             </div>
-            </div>
-            <!-- / Layout page -->
         </div>
+        <!-- / Layout page -->
+    </div>
 
-        <!-- Overlay -->
-        <div class="layout-overlay layout-menu-toggle">
+    <!-- Overlay -->
+    <div class="layout-overlay layout-menu-toggle">
 
-        </div>
-        <!-- / Layout wrapper -->
+    </div>
+    <!-- / Layout wrapper -->
     </div>
 
     <div class="buy-now">
@@ -365,10 +363,24 @@
     <!-- Vendors JS -->
     <!-- Main JS -->
     <script src="assets/js/main.js"></script>
-
+    <script src="../assets/js/api-config.js"></script>
     <!-- Page JS -->
     <!-- Place this tag in your head or just before your close body tag. -->
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <script src="assets/js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Lấy role từ LocalStorage (Lúc Login ông lưu là gì thì gọi đúng tên biến đó, ví dụ 'userRole')
+            const role = localStorage.getItem('userRole') || '';
+            const btnThemNhanVien = document.getElementById('btnThemNhanVienMoi');
+
+            // Nếu KHÔNG PHẢI là nhóm Quản trị -> Giấu luôn cái nút Tạo mới đi
+            if (role !== 'Admin' && role !== 'Chủ quán' && role !== 'Quản trị web') {
+                if (btnThemNhanVien) {
+                    btnThemNhanVien.style.display = 'none';
+                }
+            }
+        });
+    </script>
 </body>
 </html>

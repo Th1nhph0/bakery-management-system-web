@@ -1,12 +1,10 @@
-﻿using Bakery.API.DTOs;
-using Bakery.Data.DTOs;
+﻿using Bakery.Data.DTOs;
 using Bakery.Data.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-// using Bakery.Data.Models; // Mở comment dòng này và sửa theo tên Project của ông
-// using Bakery.API.DTOs;
 
-namespace Bakery.Data.DTOs
+
+namespace Bakery.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -29,6 +27,10 @@ namespace Bakery.Data.DTOs
         [HttpPost("ThemNhanVienMoi")]
         public async Task<IActionResult> TaoNhanVienMoi([FromBody] NhanVienDTO request)
         {
+            if (request.RoleNguoiSua != "Admin" && request.RoleNguoiSua != "Chủ quán" && request.RoleNguoiSua != "Quản trị web")
+            {
+                return StatusCode(403, new { Message = "⛔ Lỗi bảo mật: Bạn không có quyền khởi tạo tài khoản nhân sự!" });
+            }
             try
             {
                 // 1. Kiểm tra xem Email có bị trùng không (Rất quan trọng để không bị lỗi SQL)
@@ -62,7 +64,7 @@ namespace Bakery.Data.DTOs
         }
 
         [HttpPut("CapNhatNhanVien/{id}")]
-        public async Task<IActionResult> CapNhatNhanVien(int id, NhanVienDTO nvUpdate)
+        public async Task<IActionResult> CapNhatNhanVien(int id, [FromBody] NhanVienDTO nvUpdate)
         {
             var nv = await _context.NhanViens.FindAsync(id);
             if (nv == null) return NotFound();

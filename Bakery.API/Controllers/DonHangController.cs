@@ -374,7 +374,7 @@ namespace Bakery.API.Controllers
 
                     khungBanhCustomHtml = $@"
             <div style='background-color: #fffdf6; border: 1px dashed #ffc107; border-radius: 6px; padding: 12px; margin-top: 15px;'>
-                <div style='color: #b47e00; font-weight: bold; margin-bottom: 5px;'>📝 THÔNG SỐ CẤU HÌNH BÁNH THIẾT KẾ RIÊNG (BÓC TỪ THẺ XML)</div>
+                <div style='color: #b47e00; font-weight: bold; margin-bottom: 5px;'>THÔNG SỐ ĐƠN HÀNG THIẾT KẾ RIÊNG</div>
                 <table style='width: 100%; font-size: 13px;' cellpadding='4'>
                     <tr>
                         <td style='width: 20%; font-weight:bold;'>Quy cách/Size:</td>
@@ -672,10 +672,19 @@ namespace Bakery.API.Controllers
         // ==========================================
         // 11. API: TẢI FILE ẢNH MẪU LÊN SERVER VẬT LÝ
         // ==========================================
+        // ==========================================
+        // 11. API: TẢI FILE ẢNH MẪU LÊN SERVER VẬT LÝ
+        // ==========================================
         [HttpPost("UploadAnhMauCustom")]
-        public async Task<IActionResult> UploadAnh([FromForm] IFormFile file)
+        public async Task<IActionResult> UploadAnh()
         {
-            if (file == null || file.Length == 0) return BadRequest(new { Message = "File ảnh không hợp lệ!" });
+            // 😎 BÍ THUẬT BYPASS BUG .NET 9: 
+            // Giấu sạch tham số IFormFile ở hàm để Swagger không quét trúng gây sập.
+            // Hệ thống sẽ chủ động tự bóc tách file từ luồng Request ngầm gửi lên!
+            var file = Request.Form.Files.FirstOrDefault();
+
+            if (file == null || file.Length == 0)
+                return BadRequest(new { Message = "File ảnh không hợp lệ hoặc trống!" });
 
             try
             {
@@ -690,7 +699,7 @@ namespace Bakery.API.Controllers
                     await file.CopyToAsync(stream);
                 }
 
-                var linkAnhNoiBo = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
+                var linkAnhNoiBo = $"/uploads/{fileName}";
                 return Ok(new { Success = true, LinkAnh = linkAnhNoiBo });
             }
             catch (Exception ex)

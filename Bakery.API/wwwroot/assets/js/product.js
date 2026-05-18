@@ -58,7 +58,9 @@ async function handleAddProduct(event) {
         SoLuong: document.getElementById('soLuong') ? Number(document.getElementById('soLuong').value) : 0,
         PhanLoai: document.getElementById('phanLoai').value,
         MoTa: document.getElementById('moTa') ? document.getElementById('moTa').value : '',
-        HinhAnh: document.getElementById('linkHinhAnh') ? document.getElementById('linkHinhAnh').value : ''    };
+        HinhAnh: document.getElementById('linkHinhAnh') ? document.getElementById('linkHinhAnh').value : '',
+        RoleNguoiSua: localStorage.getItem('userRole') || ''
+    };
 
     const method = editId ? 'PUT' : 'POST';
     const apiUrl = editId
@@ -103,9 +105,7 @@ function editProduct(id) {
 
 // 5. GỘP SỰ KIỆN KHI TRANG LOAD
 document.addEventListener('DOMContentLoaded', async () => {
-    if (document.getElementById('productTableBody')) {
-        loadProducts();
-    }
+    if (document.getElementById('productTableBody')) loadProducts();
 
     const formProduct = document.getElementById('formAddProduct');
     if (formProduct) formProduct.addEventListener('submit', handleAddProduct);
@@ -115,8 +115,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const formTitle = document.querySelector('.card-header h5');
     const submitBtn = document.querySelector('button[type="submit"]');
 
+    // 🔥 LẤY CHỨC VỤ ĐỂ PHÂN QUYỀN
+    const role = localStorage.getItem('userRole') || '';
+
+    // NẾU LÀ TẠO MỚI MÀ KHÔNG PHẢI SẾP -> ĐUỔI VỀ LIỀN!
+    if (!editId && (role !== 'Admin' && role !== 'Chủ quán' && role !== 'Quản trị web') && formProduct) {
+        alert("⛔ BẢO MẬT: Bạn chỉ được phép Cập nhật số lượng tồn kho. Không được tạo bánh mới!");
+        window.location.href = "list-product.html";
+        return;
+    }
+
     if (editId) {
-        if (formTitle) formTitle.innerText = "Cập Nhật Thông Tin Sản Phẩm";
+        if (formTitle) formTitle.innerText = "Cập Nhật Kho Sản Phẩm";
         if (submitBtn) {
             submitBtn.innerText = "Lưu Cập Nhật";
             submitBtn.classList.replace('btn-primary', 'btn-warning');
@@ -129,21 +139,33 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (Array.isArray(data)) { data = data[0]; }
 
                 if (data) {
-                    document.getElementById('tenSanPham').value = data.tenSanPham || data.TenSanPham || data.ten_San_Pham || '';
-                    document.getElementById('giaBan').value = data.donGiaBan || data.DonGiaBan || data.giaBan || 0;
+                    document.getElementById('tenSanPham').value = data.tenSanPham || data.TenSanPham || '';
+                    document.getElementById('giaBan').value = data.donGiaBan || data.DonGiaBan || 0;
                     document.getElementById('phanLoai').value = data.phanLoai || data.PhanLoai || '';
-
-                    if (document.getElementById('soLuong')) {
-                        document.getElementById('soLuong').value = data.soLuongTon || data.SoLuongTon || 0;
-                    }
+                    if (document.getElementById('soLuong')) document.getElementById('soLuong').value = data.soLuongTon || data.SoLuongTon || 0;
                     if (document.getElementById('moTa')) document.getElementById('moTa').value = data.moTa || data.MoTa || '';
-                    if (document.getElementById('linkHinhAnh')) document.getElementById('linkHinhAnh').value = data.hinhAnh || data.HinhAnh || '';                    if (data.hinhAnh) {
+                    if (document.getElementById('linkHinhAnh')) document.getElementById('linkHinhAnh').value = data.hinhAnh || data.HinhAnh || '';
+                    if (data.hinhAnh) {
                         const previewContainer = document.getElementById('previewContainerSP');
                         const previewImg = document.getElementById('previewImgSP');
                         if (previewContainer && previewImg) {
                             previewImg.src = data.hinhAnh;
                             previewContainer.style.display = "block";
                         }
+                    }
+
+                    // 🔥 KHÓA MÕM FORM: Nếu không phải Sếp thì Disable hết, chỉ chừa ô Số Lượng Tồn
+                    if (role !== 'Admin' && role !== 'Chủ quán' && role !== 'Quản trị web') {
+                        document.getElementById('tenSanPham').disabled = true;
+                        document.getElementById('giaBan').disabled = true;
+                        document.getElementById('phanLoai').disabled = true;
+                        if (document.getElementById('moTa')) document.getElementById('moTa').disabled = true;
+                        if (document.getElementById('fileAnhSanPham')) document.getElementById('fileAnhSanPham').disabled = true;
+
+                        const alertBox = document.createElement('div');
+                        alertBox.className = "alert alert-warning mb-3 fw-bold text-dark";
+                        alertBox.innerHTML = `🔒 CHẾ ĐỘ NHÂN VIÊN: Hệ thống đã khóa các thuộc tính. Bạn chỉ được phép điều chỉnh "Số lượng tồn kho".`;
+                        formProduct.prepend(alertBox);
                     }
                 }
             }
@@ -170,7 +192,7 @@ async function uploadAnhSanPham() {
 
     try {
         // Tái sử dụng API cũ cho an toàn và nhanh gọn
-        const response = await fetch(`https://localhost:7122/api/DonHang/UploadAnhMauCustom`, {
+        const response = await fetch(`${API_URL}/api/DonHang/UploadAnhMauCustom`, {
             method: 'POST',
             body: formData
         });

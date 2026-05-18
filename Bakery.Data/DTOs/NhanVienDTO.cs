@@ -4,7 +4,7 @@ using System.Text;
 using System.ComponentModel.DataAnnotations;
 
 
-namespace Bakery.API.DTOs
+namespace Bakery.Data.DTOs
 {
     public class NhanVienDTO // & KhachHangDTO cũng y chang
     {

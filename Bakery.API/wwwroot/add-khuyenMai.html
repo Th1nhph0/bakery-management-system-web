@@ -242,5 +242,17 @@
     <script src="../assets/vendor/js/menu.js"></script>
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/khuyenMai.js"></script>
+    <script src="../assets/js/api-config.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const role = localStorage.getItem('userRole') || '';
+
+            // Đuổi cổ ngay lập tức nếu là nhân viên
+            if (role !== 'Admin' && role !== 'Chủ quán' && role !== 'Quản trị web') {
+                alert("⛔ CẢNH BÁO: Chức năng cấu hình Khuyến Mãi chỉ dành riêng cho Quản lý cửa hàng!");
+                window.location.href = "list-khuyenMai.html";
+            }
+        });
+    </script>
 </body>
 </html>

@@ -6,8 +6,7 @@ using System.Text;
 
 namespace Bakery.Data.DTOs
 {
- 
-    public class DonBanhCustomRequest
+     public class DonBanhCustomRequest
     {
         // Thông tin đơn hàng cơ bản
         public int? Khach_Hang_ID { get; set; }

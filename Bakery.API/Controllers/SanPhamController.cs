@@ -1,8 +1,9 @@
-﻿using Bakery.Data.Models;
-using Bakery.Data.DTOs;
+﻿using Bakery.Data.DTOs;
+using Bakery.Data.Models;
 using Bakery.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 
 namespace Bakery.API.Controllers
@@ -48,7 +49,16 @@ namespace Bakery.API.Controllers
         [HttpPost("ThemSanPhamMoi")]
         public async Task<IActionResult> ThemSanPhamMoi([FromBody] SanPhamUpdateDTO dto)
         {
-            // 1. Kiểm tra bộ lọc dữ liệu đầu vào
+            // 1. Ép chức vụ gửi lên thành chữ thường hết để chống lỗi phân biệt Hoa/Thường
+            var role = dto.RoleNguoiSua?.Trim().ToLower() ?? "";
+
+            // 2. BAO LÔ TOÀN BỘ các chức danh của Sếp
+            if (role != "admin" && role != "chủ quán" && role != "quản trị web" && role != "quản trị viên")
+            {
+                return StatusCode(403, new { Message = "⛔ Lỗi bảo mật: Nhân viên không được quyền tạo sản phẩm mới!" });
+            }
+
+            // 3. Kiểm tra dữ liệu đầu vào (Tên bánh, Giá bán phải có)
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -101,23 +111,31 @@ namespace Bakery.API.Controllers
         }
 
         [HttpPut("CapNhatSanPham/{id}")]
-        public async Task<IActionResult> CapNhatSanPham(int id, SanPhamUpdateDTO spUpdate)
+        public async Task<IActionResult> CapNhatSanPham(int id, [FromBody] SanPhamUpdateDTO spUpdate)
         {
-            // Dò tìm sản phẩm cũ trong DB
             var sp = await _context.SanPhams.FindAsync(id);
             if (sp == null) return NotFound(new { Message = "Không tìm thấy sản phẩm!" });
 
-            // Cập nhật thông tin mới từ Frontend gửi lên
-            sp.TenSanPham = spUpdate.TenSanPham; // Hoặc sp.Ten_Banh, sp.TenSanPham tùy ông đặt
-            sp.DonGiaBan = spUpdate.GiaBan;   // Hoặc sp.DonGia, sp.Gia
-            sp.SoLuongTon = spUpdate.SoLuong; // Hoặc sp.SoLuongTon
-            sp.PhanLoai = spUpdate.PhanLoai;
-            sp.MoTa = spUpdate.MoTa;
-            sp.HinhAnh= spUpdate.HinhAnh;
+            // 🔥 VÁ LỖI PHÂN QUYỀN: Ép về chữ thường sạch sẽ để tránh lỗi lệch pha Hoa/Thường giữa C# và JS
+            var role = spUpdate.RoleNguoiSua?.Trim().ToLower() ?? "";
 
-            if (!string.IsNullOrEmpty(spUpdate.HinhAnh))
+            if (role != "admin" && role != "chủ quán" && role != "quản trị web" && role != "quản trị viên")
             {
-                sp.HinhAnh = spUpdate.HinhAnh;
+                // Nếu là nhân viên -> CHỈ cập nhật duy nhất Số lượng tồn kho
+                sp.SoLuongTon = spUpdate.SoLuong;
+            }
+            else
+            {
+                // Nếu là Sếp -> Cho phép cập nhật tất tay mọi thông số của bánh
+                sp.TenSanPham = spUpdate.TenSanPham;
+                sp.DonGiaBan = spUpdate.GiaBan;
+                sp.SoLuongTon = spUpdate.SoLuong;
+                sp.PhanLoai = spUpdate.PhanLoai;
+                sp.MoTa = spUpdate.MoTa ?? "";
+                if (!string.IsNullOrEmpty(spUpdate.HinhAnh))
+                {
+                    sp.HinhAnh = spUpdate.HinhAnh;
+                }
             }
 
             try

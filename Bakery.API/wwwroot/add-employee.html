@@ -388,7 +388,7 @@
 
                                               <button type="submit" class="btn btn-primary">Tạo Tài Khoản</button>
                                           </form>
-</div>
+                                      </div>
                                   </div>
                               </div>
                           </div>
@@ -435,5 +435,21 @@
       <script async defer src="https://buttons.github.io/buttons.js"></script>
       <script src="../assets/js/auth.js"></script>
       <script src="../assets/js/main.js"></script>
+      <script src="../assets/js/api-config.js"></script>
+      <script>
+          document.addEventListener('DOMContentLoaded', () => {
+              const role = localStorage.getItem('userRole') || '';
+              const urlParams = new URLSearchParams(window.location.search);
+              const editId = urlParams.get('id');
+
+              // BÍ THUẬT PHÂN QUYỀN:
+              // Nếu KHÔNG có ID trên url (Nghĩa là đang muốn Tạo mới)
+              // VÀ chức vụ KHÔNG PHẢI là Sếp -> Lập tức đuổi về trang danh sách!
+              if (!editId && (role !== 'Admin' && role !== 'Chủ quán' && role !== 'Quản trị web')) {
+                  alert("⛔ CẢNH BÁO BẢO MẬT: Bạn không có quyền truy cập chức năng Tạo Tài Khoản Nhân Viên Mới!");
+                  window.location.href = "list-employee.html";
+              }
+          });
+      </script>
   </body>
 </html>
