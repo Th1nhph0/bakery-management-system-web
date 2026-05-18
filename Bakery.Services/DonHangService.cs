@@ -71,8 +71,7 @@ namespace Bakery.Services
         public async Task<string?> XuatHoaDonXmlAsync(int donHangId)
         {
             // 1. Lấy thông tin Đơn hàng kèm theo danh sách Chi tiết
-            var donHang = await _context.DonHangs.Include(dh => dh.ChiTietDonHangs).Include(dh => dh.DonBanhCustom).FirstOrDefaultAsync(dh => dh.DonHangId == donHangId);
-
+            var donHang = await _context.DonHangs.Include(dh => dh.ChiTietDonHangs).FirstOrDefaultAsync(dh => dh.DonHangId == donHangId);
 
             if (donHang == null) return null;
 

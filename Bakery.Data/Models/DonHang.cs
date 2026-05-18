@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Bakery.Data.Models;
 
@@ -38,6 +39,10 @@ public partial class DonHang
     public virtual KhuyenMai? KhuyenMai { get; set; }
 
     public virtual NhanVien? NhanVien { get; set; }
+
+    [Column("Nguoi_Cap_Nhat")]
     public string? NguoiCapNhat { get; set; }
+
+    [Column("Ngay_Cap_Nhat")]
     public DateTime? NgayCapNhat { get; set; }
 }

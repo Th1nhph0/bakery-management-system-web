@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Bakery.Data.Models;
 
@@ -18,7 +19,7 @@ public partial class SanPham
     public string? MoTa { get; set; }
 
     public int? SoLuongTon { get; set; }
-
+    [Column("Hinh_Anh")]
     public string? HinhAnh { get; set; }
 
     public virtual ICollection<ChiTietDonHang> ChiTietDonHangs { get; set; } = new List<ChiTietDonHang>();
