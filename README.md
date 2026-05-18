@@ -13,7 +13,7 @@ and Practices in Programming, Apress, 2022.
 2024.https://learn.microsoft.com/en-us/ef/core/
 
 [4] ThemeSelection, Sneat - Free Bootstrap 5 HTML Admin Template, 2024.
-urlhttps://themeselection.com/item/sneat-free-bootstrap-html-admin-template/
+https://themeselection.com/item/sneat-free-bootstrap-html-admin-template/
 
 [5] Mark Otto, Jacob Thornton, and Bootstrap contributors, Bootstrap 5.0 Documenta-
 tion, https://getbootstrap.com/docs/5.0/
