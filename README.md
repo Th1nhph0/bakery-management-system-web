@@ -10,7 +10,7 @@ and Azure, Microsoft Corporation, 2023.
 and Practices in Programming, Apress, 2022.
 
 [3] Microsoft Documentation, Entity Framework Core Overview, Microsoft Learn,
-2024. urlhttps://learn.microsoft.com/en-us/ef/core/
+2024.https://learn.microsoft.com/en-us/ef/core/
 
 [4] ThemeSelection, Sneat - Free Bootstrap 5 HTML Admin Template, 2024.
 urlhttps://themeselection.com/item/sneat-free-bootstrap-html-admin-template/
