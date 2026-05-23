@@ -107,9 +107,10 @@ namespace Bakery.Services
         public async Task<decimal> GetDoanhThuThang(int thang, int nam)
         {
             return await _context.DonHangs
-                .Where(dh => dh.NgayDatHang.HasValue // Check xem có ngày đặt không đã
-                          && dh.NgayDatHang.Value.Month == thang
-                          && dh.NgayDatHang.Value.Year == nam)
+                .Where(dh => dh.TrangThai == "Đã giao/Đã thanh toán" 
+                          && dh.NgayCapNhat.HasValue                
+                          && dh.NgayCapNhat.Value.Month == thang
+                          && dh.NgayCapNhat.Value.Year == nam)
                 .SumAsync(dh => dh.TongTien ?? 0);
         }
     }

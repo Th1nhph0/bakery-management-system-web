@@ -96,19 +96,16 @@ function renderOrderGrid(orders) {
             `;
         }
         else if (trangThaiHienTai === "Đã hủy" || trangThaiHienTai === "Đã giao/Đã thanh toán" || trangThaiHienTai === "Hoàn thành") {
-            // TẦNG 2: 🔥 ĐƠN HÀNG ĐÃ HỦY -> KHÓA CHẾT TOÀN DIỆN, đổi nút Sửa thành "Khóa sửa" disabled, cấm xóa!
             actionButtonsHtml = `
-                <button class="btn btn-xs btn-light text-muted" disabled title="Đơn hàng này đã bị hủy, không thể chỉnh sửa thêm bất kỳ thông tin nào!"><i class="bx bx-lock-alt me-1"></i>Khóa sửa</button>
-                <button class="btn btn-xs btn-light text-muted ms-1" disabled title="Đơn hàng đã hủy"><i class="bx bx-block me-1"></i>Cấm xóa</button>
+                <button class="btn btn-xs btn-light text-muted" disabled title="Đơn hàng này đã bị hủy, không thể chỉnh sửa thêm bất kỳ thông tin nào!"><i class="bx bx-lock-alt me-1"></i>Không thể sửa</button>
+                <button class="btn btn-xs btn-light text-muted ms-1" disabled title="Đơn hàng đã hủy"><i class="bx bx-block me-1"></i>Không thể xóa</button>
             `;
         }
         else {
-            // TẦNG 3: Các trạng thái trung gian (Đã duyệt, Đang làm, Hoàn thành, Đã giao...)
-            // Vẫn cho bấm nút SỬA để cập nhật thông tin hành chính khách hàng, cho hiện nút Hủy, nhưng CẤM XÓA cứng.
             actionButtonsHtml = `
                 <button class="btn btn-xs btn-outline-warning" onclick="editOrder(${id})" title="Chỉnh sửa thông tin hành chính & trạng thái"><i class="bx bx-edit-alt me-1"></i>Sửa</button>
                 ${huyDonBtnHtml}
-                <button class="btn btn-xs btn-light text-muted ms-1" disabled title="Chỉ được phép thực hiện xóa đơn Chờ xử lý"><i class="bx bx-block me-1"></i>Cấm xóa</button>
+                <button class="btn btn-xs btn-light text-muted ms-1" disabled title="Chỉ được phép thực hiện xóa đơn Chờ xử lý"><i class="bx bx-block me-1"></i>Không thể xóa</button>
             `;
         }
 

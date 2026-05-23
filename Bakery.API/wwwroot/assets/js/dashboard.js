@@ -4,7 +4,6 @@
     const tableBody = document.getElementById('dashboardOrderTableBody');
     const filterSelect = document.getElementById('filterChartType');
 
-    // Kết nối chính xác tới 6 ô trạng thái đếm trên giao diện HTML
     const lblChoXuLy = document.getElementById('countChoXuLy');
     const lblDaDuyet = document.getElementById('countDaDuyet');
     const lblDangLam = document.getElementById('countDangLam');
@@ -83,26 +82,25 @@
         if (lblDaHuy) lblDaHuy.innerText = vDaHuy;
         if (lblDaGiao) lblDaGiao.innerText = vDaGiao;
 
-        // 📈 PHẦN A: VẼ BIỂU ĐỒ TRÒN 6 MẢNH SONG HÀNH BÊN PHẢI (BẢN UPDATE MAX SIZE)
         if (document.querySelector("#statusPieChartContainer")) {
             const pieOptions = {
                 series: [vChoXuLy, vDaDuyet, vDangLam, vHoanThanh, vDaHuy, vDaGiao],
                 chart: {
                     type: 'pie',
-                    height: 300, // Đồng bộ độ cao tuyệt đối với biểu đồ diện tích bên trái
+                    height: 300,
                     fontFamily: 'Public Sans',
-                    offsetY: -10 // Đẩy tâm vòng tròn lên trên một chút để nhường không gian cho Legend
+                    offsetY: -10 
                 },
-                // 🔥 THUẬT TOÁN KÉO BÃN KÍNH: Ép vòng tròn bung to hết cỡ, không bị bóp nghẹt
+               
                 plotOptions: {
                     pie: {
-                        customScale: 1, // Phóng lớn kích thước chiếc bánh lên 115%
+                        customScale: 1, 
                         dataLabels: {
-                            offset: -15 // Đẩy các con số nhãn vào sâu trong tâm mảng bánh một chút để chống tràn chữ
+                            offset: -15 
                         }
                     }
                 },
-                labels: ['Chờ Xử Lý', 'Đã Duyệt', 'Đang Làm', 'Hoàn Thành', 'Đã Hủy', 'Đã Giao'],
+                labels: ['Chờ Xử Lý', 'Đã Duyệt', 'Đang Làm', 'Hoàn Thành', 'Đã Hủy', 'Đã Giao/Đã thanh toán'],
                 colors: ['#03c3ec', '#696cff', '#ffab00', '#71dd37', '#ff3e1d', '#233446'],
                 legend: {
                     position: 'bottom',
@@ -123,9 +121,9 @@
                         fontWeight: 'bold',
                         colors: ['#fff']
                     },
-                    dropShadow: { enabled: false }, // Tắt bóng mờ chữ giúp hiển thị text sắc nét rõ ràng
+                    dropShadow: { enabled: false },
                     formatter: function (val, opts) {
-                        // Chỉ hiển thị nhãn chữ số nếu phân khúc đó có đơn thực tế phát sinh (tránh đè số 0 lung tung)
+                  
                         const totalOrdersInPiece = opts.w.config.series[opts.seriesIndex];
                         return totalOrdersInPiece > 0 ? totalOrdersInPiece + " đơn" : "";
                     }
@@ -135,7 +133,7 @@
             pieChart.render();
         }
 
-        // 🕒 PHẦN B: HIỂN THỊ TOÀN BỘ DANH SÁCH BẢNG ĐƠN HÀNG
+    
         const sortedAllOrders = [...orders].sort((a, b) => (b.donHangId || b.DonHangId || 0) - (a.donHangId || a.DonHangId || 0));
         tableBody.innerHTML = '';
         sortedAllOrders.forEach(dh => {
@@ -168,10 +166,12 @@
                 </tr>`;
         });
 
-        // 📈 PHẦN C: THUẬT TOÁN CO GIÃN ĐƯỜNG BIỂU ĐỒ AREA DOANH THU BÊN TRÁI
+     
         function updateChartData() {
             const filterType = filterSelect ? filterSelect.value : 'ngay';
-            let categories = []; let dataSeries = []; let labelName = "Doanh thu thực nhận";
+            let categories = [];
+            let dataSeries = [];
+            let labelName = "Doanh thu thực nhận";
             const now = new Date();
 
             if (filterType === 'ngay') {
@@ -180,9 +180,17 @@
                     categories.push(`${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`);
                     const targetYMD = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                     let sumDay = 0;
+
                     validOrders.forEach(dh => {
-                        const keyCoChuNgay = Object.keys(dh).find(k => k.toLowerCase().includes('ngay') || k.toLowerCase().includes('date'));
-                        if (normalizeToYMD(dh[keyCoChuNgay]) === targetYMD) sumDay += (dh.tong_tien || dh.tongTien || dh.TongTien || 0);
+                        // 🔥 BÍ THUẬT: Chỉ đích danh lấy ngày Cập Nhật, nếu rỗng thì mới xài Ngày Đặt
+                        let ngayChuan = dh.ngayCapNhat || dh.NgayCapNhat || dh.ngay_cap_nhat;
+                        if (!ngayChuan) {
+                            ngayChuan = dh.ngayDatHang || dh.NgayDatHang || dh.ngay_dat_hang;
+                        }
+                        let dateYMD = normalizeToYMD(ngayChuan);
+                        if (normalizeToYMD(ngayChuan) === targetYMD) {
+                            sumDay += (dh.tong_tien || dh.tongTien || dh.TongTien || 0);
+                        }
                     });
                     dataSeries.push(sumDay);
                 }
@@ -190,19 +198,38 @@
                 for (let m = 1; m <= 12; m++) {
                     categories.push(`Tháng ${m}`); let sumMonth = 0;
                     validOrders.forEach(dh => {
-                        const keyCoChuNgay = Object.keys(dh).find(k => k.toLowerCase().includes('ngay') || k.toLowerCase().includes('date'));
-                        const oYMD = normalizeToYMD(dh[keyCoChuNgay]);
-                        if (oYMD && parseInt(oYMD.split('-')[1]) === m && parseInt(oYMD.split('-')[0]) === now.getFullYear()) sumMonth += (dh.tong_tien || dh.tongTien || dh.TongTien || 0);
+                        let ngayChuan = dh.ngayCapNhat || dh.NgayCapNhat || dh.ngay_cap_nhat;
+                        if (!ngayChuan) ngayChuan = dh.ngayDatHang || dh.NgayDatHang || dh.ngay_dat_hang;
+
+                        const oYMD = normalizeToYMD(ngayChuan);
+                        if (oYMD && parseInt(oYMD.split('-')[1]) === m && parseInt(oYMD.split('-')[0]) === now.getFullYear()) {
+                            sumMonth += (dh.tong_tien || dh.tongTien || dh.TongTien || 0);
+                        }
                     });
                     dataSeries.push(sumMonth);
                 }
             } else if (filterType === 'nam') {
                 let yearsSet = new Set([now.getFullYear()]);
-                validOrders.forEach(dh => { const keyCoChuNgay = Object.keys(dh).find(k => k.toLowerCase().includes('ngay') || k.toLowerCase().includes('date')); const oYMD = normalizeToYMD(dh[keyCoChuNgay]); if (oYMD) yearsSet.add(parseInt(oYMD.split('-')[0])); });
+                validOrders.forEach(dh => {
+                    let ngayChuan = dh.ngayCapNhat || dh.NgayCapNhat || dh.ngay_cap_nhat;
+                    if (!ngayChuan) ngayChuan = dh.ngayDatHang || dh.NgayDatHang || dh.ngay_dat_hang;
+
+                    const oYMD = normalizeToYMD(ngayChuan);
+                    if (oYMD) yearsSet.add(parseInt(oYMD.split('-')[0]));
+                });
+
                 categories = Array.from(yearsSet).sort((a, b) => a - b);
                 categories.forEach(y => {
                     let sumYear = 0;
-                    validOrders.forEach(dh => { const keyCoChuNgay = Object.keys(dh).find(k => k.toLowerCase().includes('ngay') || k.toLowerCase().includes('date')); if (parseInt(normalizeToYMD(dh[keyCoChuNgay]).split('-')[0]) === y) sumYear += (dh.tong_tien || dh.tongTien || dh.TongTien || 0); });
+                    validOrders.forEach(dh => {
+                        let ngayChuan = dh.ngayCapNhat || dh.NgayCapNhat || dh.ngay_cap_nhat;
+                        if (!ngayChuan) ngayChuan = dh.ngayDatHang || dh.NgayDatHang || dh.ngay_dat_hang;
+
+                        const oYMD = normalizeToYMD(ngayChuan);
+                        if (parseInt(oYMD.split('-')[0]) === y) {
+                            sumYear += (dh.tong_tien || dh.tongTien || dh.TongTien || 0);
+                        }
+                    });
                     dataSeries.push(sumYear);
                 });
             }
@@ -217,13 +244,20 @@
                 tooltip: { y: { formatter: val => new Intl.NumberFormat('vi-VN').format(val) + ' đ' } },
                 grid: { borderColor: '#f1f1f1', padding: { top: -20, bottom: -10 } }
             };
-            if (revenueChart) { revenueChart.updateOptions(chartOptions); }
-            else { revenueChart = new ApexCharts(document.querySelector("#revenueChartContainer"), chartOptions); revenueChart.render(); }
-        }
 
+            if (revenueChart) {
+                revenueChart.updateOptions(chartOptions);
+            } else {
+                revenueChart = new ApexCharts(document.querySelector("#revenueChartContainer"), chartOptions);
+                revenueChart.render();
+            }
+        }
         if (document.querySelector("#revenueChartContainer")) {
-            updateChartData();
-            if (filterSelect) filterSelect.addEventListener('change', updateChartData);
+            updateChartData(); // Gọi hàm chạy để vẽ biểu đồ ban đầu
+            if (filterSelect) {
+                // Gắn sự kiện: mỗi khi người dùng đổi combobox thì gọi lại hàm để vẽ lại
+                filterSelect.addEventListener('change', updateChartData);
+            }
         }
 
     } catch (err) {

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Bakery.Data.Models;
+namespace Bakery.API.Models;
 
 public partial class DonBanhCustom
 {
@@ -24,7 +23,7 @@ public partial class DonBanhCustom
 
     public DateTime NgayLayHang { get; set; }
 
-    [Column("Hinh_Anh")]
     public string? HinhAnh { get; set; }
+
     public virtual DonHang DonHang { get; set; } = null!;
 }

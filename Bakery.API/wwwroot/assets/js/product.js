@@ -98,12 +98,10 @@ async function deleteProduct(id) {
     }
 }
 
-// 4. CHUYỂN TRANG SỬA
 function editProduct(id) {
     window.location.href = `add-product.html?id=${id}`;
 }
 
-// 5. GỘP SỰ KIỆN KHI TRANG LOAD
 document.addEventListener('DOMContentLoaded', async () => {
     if (document.getElementById('productTableBody')) loadProducts();
 
@@ -115,12 +113,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const formTitle = document.querySelector('.card-header h5');
     const submitBtn = document.querySelector('button[type="submit"]');
 
-    // 🔥 LẤY CHỨC VỤ ĐỂ PHÂN QUYỀN
     const role = localStorage.getItem('userRole') || '';
 
-    // NẾU LÀ TẠO MỚI MÀ KHÔNG PHẢI SẾP -> ĐUỔI VỀ LIỀN!
     if (!editId && (role !== 'Admin' && role !== 'Chủ quán' && role !== 'Quản trị web') && formProduct) {
-        alert("⛔ BẢO MẬT: Bạn chỉ được phép Cập nhật số lượng tồn kho. Không được tạo bánh mới!");
+        alert("⛔ BẢO MẬT: Bạn chỉ được phép Cập nhật số lượng tồn kho. Không được tạo sản phẩm mới!");
         window.location.href = "list-product.html";
         return;
     }
@@ -154,7 +150,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                         }
                     }
 
-                    // 🔥 KHÓA MÕM FORM: Nếu không phải Sếp thì Disable hết, chỉ chừa ô Số Lượng Tồn
                     if (role !== 'Admin' && role !== 'Chủ quán' && role !== 'Quản trị web') {
                         document.getElementById('tenSanPham').disabled = true;
                         document.getElementById('giaBan').disabled = true;
@@ -176,7 +171,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// 🔥 HÀM UPLOAD ẢNH SẢN PHẨM (Xài ké API của Đơn Hàng)
 async function uploadAnhSanPham() {
     const fileInput = document.getElementById('fileAnhSanPham');
     const statusText = document.getElementById('uploadStatusSP');
@@ -191,7 +185,6 @@ async function uploadAnhSanPham() {
     statusText.className = "text-warning d-block mt-1";
 
     try {
-        // Tái sử dụng API cũ cho an toàn và nhanh gọn
         const response = await fetch(`${API_URL}/api/DonHang/UploadAnhMauCustom`, {
             method: 'POST',
             body: formData
