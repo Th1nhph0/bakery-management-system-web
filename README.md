@@ -1,5 +1,7 @@
 # bakery-management-system-web
 Bakery management system (ASP.NET Core Web API + SQL Server, 3-tier architecture)
+
+
 File Script schema và data: run trước khi tiến hành web: [Bakery_Management_.sql](https://github.com/user-attachments/files/28172004/Bakery_Management_.sql)
 
 Tài liệu tham khảo:
