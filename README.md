@@ -2,7 +2,7 @@
 Bakery Management System: 3-Tier Web API with EF Core DB-First & T-SQL
 
 
-File Script schema và data: run trước khi tiến hành web: [Bakery_Management_.sql](https://github.com/user-attachments/files/28172004/Bakery_Management_.sql)
+File Script schema và data: run trước khi tiến hành web: [Bakery_Management_.sql](https://github.com/user-attachments/files/28186980/Bakery_Management_.sql)
 
 Tài liệu tham khảo:
 
