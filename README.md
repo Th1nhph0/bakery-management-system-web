@@ -1,4 +1,4 @@
-# bakery-management-system-web
+# BAKERY MANAGEMENT & ANALYTICS SYSTEM
 Bakery Management System: 3-Tier Web API with EF Core DB-First & T-SQL
 
 
