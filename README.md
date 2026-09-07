@@ -53,13 +53,6 @@ The system is decomposed into 3 independent layers to ensure security, maintaina
 
 ---
 
-##  Technical Challenges Overcome
-* Completely resolved Namespace conflicts causing Swagger 500 errors[cite: 5].
-* Successfully synchronized data mapping between C#'s `PascalCase` and JavaScript's `camelCase`[cite: 5].
-* Resolved EF Core tracking issues when updating multi-table shopping carts using the `BeginTransactionAsync` mechanism[cite: 5].
-
----
-
 ##  Contributors
 * **Võ Hoàng Thịnh** (Team Lead)[cite: 5]
 * **Đinh Thị Minh Châu** (Member)[cite: 5]
